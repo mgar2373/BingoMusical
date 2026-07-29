@@ -276,6 +276,43 @@ async function saveConfig(newCards){
   return data;
 }
 
+async function resetCurrentGame(){
+  const current = await fetchConfig();
+  await archiveCurrentGame();
+  const { data, error } = await sb.from('bingo_config')
+    .update({ version: (current.version||0)+1, updated_at: new Date().toISOString() })
+    .eq('id',1).select('cards,version').single();
+  if(error) throw error;
+  // se borran todas las reservas, pero las tarjetas (canciones) siguen siendo las mismas
+  try{ await sb.from('bingo_claims').delete().neq('card_index', -1); }catch(e){}
+  return data;
+}
+
+// --- Partidas guardadas (presets con nombre) --------------------------------
+async function saveNamedGame(name, cards){
+  const { error } = await sb.from('bingo_saved_games').insert({ name, cards });
+  if(error) throw error;
+}
+
+async function fetchSavedGames(){
+  try{
+    const { data, error } = await sb.from('bingo_saved_games')
+      .select('id,name,created_at').order('created_at', {ascending:false});
+    if(!error) return data || [];
+  }catch(e){ /* tabla no creada todavía */ }
+  return [];
+}
+
+async function getSavedGameCards(id){
+  const { data, error } = await sb.from('bingo_saved_games').select('cards').eq('id', id).single();
+  if(error) throw error;
+  return data.cards;
+}
+
+async function deleteSavedGame(id){
+  try{ await sb.from('bingo_saved_games').delete().eq('id', id); }catch(e){}
+}
+
 function subscribeConfigChanges(){
   if(configChannel) return;
   configChannel = sb.channel('bingo_config_watch')
@@ -401,13 +438,15 @@ function updateStatsBox(){
 async function parsePdfToCards(file){
   const buf = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({data: buf}).promise;
-  const cards = [];
-  const warnings = [];
+
+  // 1) Recolectamos TODAS las líneas del documento, en orden de lectura
+  //    (página por página, de arriba a abajo dentro de cada página).
+  const allLines = [];
   for(let p=1; p<=pdf.numPages; p++){
     const page = await pdf.getPage(p);
     const content = await page.getTextContent();
     let items = content.items
-      .map(it=>({str: (it.str||'').trim(), x: it.transform[4], y: it.transform[5]}))
+      .map(it=>({str: (it.str||'').trim(), x: it.transform[4], y: it.transform[5], width: it.width||0}))
       .filter(it=>it.str.length>0);
     if(items.length===0) continue;
 
@@ -418,40 +457,65 @@ async function parsePdfToCards(file){
       if(!line){ line = {y: it.y, items: []}; lines.push(line); }
       line.items.push(it);
     }
-    lines.sort((a,b)=> b.y - a.y);
-
-    const contentLines = lines.filter(l=>{
-      const text = l.items.map(i=>i.str).join(' ');
-      return !/^TARJETA\b/i.test(text) && !/SALVADOS POR LA CANCI/i.test(text);
-    });
-
-    const songsForCard = [];
-    for(const line of contentLines){
-      const sorted = line.items.slice().sort((a,b)=> a.x-b.x);
-      let colTexts;
-      if(sorted.length === 3){
-        colTexts = sorted.map(i=>i.str);
-      } else {
-        const groups = [];
-        let cur = null, lastX = null;
-        for(const it of sorted){
-          if(cur===null || (it.x - lastX) > 18){
-            cur = [it]; groups.push(cur);
-          } else {
-            cur.push(it);
-          }
-          lastX = it.x;
-        }
-        colTexts = groups.map(g=> g.map(i=>i.str).join(' ').trim());
-      }
-      songsForCard.push(...colTexts);
-    }
-
-    if(songsForCard.length !== 9){
-      warnings.push(`Página ${p}: se detectaron ${songsForCard.length} canciones en vez de 9.`);
-    }
-    cards.push(songsForCard);
+    lines.sort((a,b)=> b.y - a.y); // de arriba a abajo dentro de la página
+    allLines.push(...lines);
   }
+
+  function lineToColumns(line){
+    const sorted = line.items.slice().sort((a,b)=> a.x-b.x);
+    if(sorted.length <= 1) return sorted.map(i=>i.str);
+
+    // Calculamos el hueco real (fin del anterior -> inicio del siguiente),
+    // no la distancia entre inicios, para no confundir espacios dentro de
+    // un mismo título largo con la separación entre columnas.
+    const gaps = [];
+    for(let i=1;i<sorted.length;i++){
+      const prev = sorted[i-1];
+      gaps.push({ idx:i, size: sorted[i].x - (prev.x + prev.width) });
+    }
+    // Los 2 huecos más grandes de la fila son, por diseño de la tabla,
+    // los que separan una columna de la siguiente (siempre hay 3 columnas).
+    const cutPoints = gaps.slice().sort((a,b)=> b.size - a.size)
+      .slice(0, Math.min(2, gaps.length))
+      .map(g=>g.idx).sort((a,b)=>a-b);
+
+    const groups = [];
+    let start = 0;
+    for(const cp of cutPoints){ groups.push(sorted.slice(start, cp)); start = cp; }
+    groups.push(sorted.slice(start));
+
+    return groups.map(g => g.map(i=>i.str).join(' ').trim());
+  }
+
+  // 2) Recorremos las líneas: cada vez que aparece "TARJETA N" empieza una
+  //    tarjeta nueva, sin importar si hay varias por página o una por página.
+  const cards = [];
+  const warnings = [];
+  let current = null;
+  let currentLabel = null;
+
+  const flush = ()=>{
+    if(current === null) return;
+    if(current.length !== 9){
+      warnings.push(`${currentLabel || 'Tarjeta ' + (cards.length+1)}: se detectaron ${current.length} canciones en vez de 9.`);
+    }
+    cards.push(current);
+  };
+
+  for(const line of allLines){
+    const text = line.items.map(i=>i.str).join(' ').trim();
+    if(/^TARJETA\s+\d+/i.test(text)){
+      flush();
+      current = [];
+      currentLabel = text;
+      continue;
+    }
+    if(/SALVADOS POR LA CANCI/i.test(text)) continue;
+    if(current === null) continue; // texto antes de la primera "TARJETA N": lo ignoramos
+    current.push(...lineToColumns(line));
+  }
+  flush();
+
   return {cards, warnings};
 }
 
@@ -665,6 +729,50 @@ async function loadHistory(){
   }
 }
 
+async function loadSavedGamesList(){
+  const box = document.getElementById('savedgameslist');
+  if(!box) return;
+  const games = await fetchSavedGames();
+  if(games.length===0){
+    box.innerHTML = `<div class="lb-empty">Todavía no has guardado ninguna partida (usa "💾 Guardar partida actual como…" en la pestaña anterior).</div>`;
+    return;
+  }
+  box.innerHTML = `<div class="divider">partidas guardadas</div>` + games.map(g=>{
+    const date = new Date(g.created_at).toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit', year:'2-digit'});
+    return `
+      <div class="catalog-card">
+        <div class="head"><span class="code">${esc(g.name)}</span><span class="player-count">${date}</span></div>
+        <div style="display:flex;gap:8px;">
+          <button data-load="${g.id}" style="flex:1;">Cargar esta partida</button>
+          <button data-delsave="${g.id}" style="flex:0 0 auto;background:var(--bad);box-shadow:0 3px 0 #9c2c33;width:auto;padding:9px 12px;">🗑️</button>
+        </div>
+      </div>`;
+  }).join('') + `<div class="divider">o sube un PDF nuevo</div>`;
+
+  box.querySelectorAll('[data-load]').forEach(btn=>{
+    btn.onclick = async ()=>{
+      btn.disabled = true;
+      btn.textContent = 'Cargando…';
+      try{
+        const cards = await getSavedGameCards(parseInt(btn.dataset.load));
+        liveConfig = await saveConfig(cards);
+        claims.clear();
+        subView = 'actual';
+        paintHome('Partida cargada — todos vuelven al catálogo.');
+      }catch(e){
+        paintHome('Error al cargar la partida: ' + ((e&&e.message)||e));
+      }
+    };
+  });
+  box.querySelectorAll('[data-delsave]').forEach(btn=>{
+    btn.onclick = async ()=>{
+      if(!confirm('¿Borrar esta partida guardada? No afecta a la partida en curso.')) return;
+      await deleteSavedGame(parseInt(btn.dataset.delsave));
+      loadSavedGamesList();
+    };
+  });
+}
+
 function paintHome(msg){
   const app = document.getElementById('app');
   app.innerHTML = `
@@ -687,8 +795,10 @@ function paintHome(msg){
     </div>
 
     <div id="catalogbody">
-      ${subView==='actual' ? `<div id="cataloglist">${catalogListHTML()}</div>`
-        : subView==='cargar' ? uploadBoxHTML()
+      ${subView==='actual' ? `<div id="cataloglist">${catalogListHTML()}</div>
+          <button class="qr-toggle" id="savegame">💾 Guardar partida actual como…</button>
+          <button class="qr-toggle" id="resetgame" style="color:var(--bad);border-color:var(--bad);">🔄 Reiniciar partida (borra todas las reservas)</button>`
+        : subView==='cargar' ? `<div id="savedgameslist"><div class="lb-empty">Cargando partidas guardadas…</div></div>${uploadBoxHTML()}`
         : `<div id="historylist"><div class="lb-empty">Cargando historial…</div></div>`}
     </div>
   `;
@@ -697,6 +807,44 @@ function paintHome(msg){
   document.getElementById('subactual').onclick = ()=>{ subView='actual'; paintHome(); };
   document.getElementById('subcargar').onclick = ()=>{ subView='cargar'; paintHome(); };
   document.getElementById('subhistorial').onclick = ()=>{ subView='historial'; paintHome(); };
+
+  const resetBtn = document.getElementById('resetgame');
+  if(resetBtn){
+    resetBtn.onclick = async ()=>{
+      const sure = confirm('¿Seguro? Esto borra las tarjetas reservadas por TODOS los jugadores y les devuelve al catálogo. Las canciones no cambian.');
+      if(!sure) return;
+      resetBtn.disabled = true;
+      resetBtn.textContent = 'Reiniciando…';
+      try{
+        liveConfig = await resetCurrentGame();
+        claims.clear();
+        myIndex = null; mySongs = null; marked.clear();
+        paintHome('Partida reiniciada — todos vuelven a elegir tarjeta.');
+      }catch(e){
+        resetBtn.disabled = false;
+        resetBtn.textContent = '🔄 Reiniciar partida (borra todas las reservas)';
+        paintHome('Error al reiniciar: ' + ((e&&e.message)||e));
+      }
+    };
+  }
+
+  const saveBtn = document.getElementById('savegame');
+  if(saveBtn){
+    saveBtn.onclick = async ()=>{
+      const name = prompt('¿Cómo quieres llamar a esta partida guardada?');
+      if(!name || !name.trim()) return;
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Guardando…';
+      try{
+        await saveNamedGame(name.trim(), liveConfig.cards);
+        paintHome(`✓ Partida guardada como "${name.trim()}".`);
+      }catch(e){
+        saveBtn.disabled = false;
+        saveBtn.textContent = '💾 Guardar partida actual como…';
+        paintHome('Error al guardar: ' + ((e&&e.message)||e));
+      }
+    };
+  }
 
   if(subView==='actual'){
     document.querySelectorAll('[data-pick]').forEach(el=>{
@@ -721,6 +869,7 @@ function paintHome(msg){
     });
   } else if(subView==='cargar'){
     bindUploadHandlers();
+    loadSavedGamesList();
   } else {
     loadHistory();
   }
