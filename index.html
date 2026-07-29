@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Salvados por la Canción</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root{
+  --paper:#F8F4FF;
+  --ink:#1B1330;
+  --mustard:#FFD400;
+  --rust:#FF3E9A;
+  --rust-dk:#C81F73;
+  --teal:#00B8B0;
+  --purple:#7A2CBF;
+  --purple-dk:#551F87;
+  --good:#1FA971;
+  --bad:#D8434E;
+  --line:#E3D6F5;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Space Grotesk',sans-serif;
+  min-height:100vh;
+  background-image:
+    radial-gradient(circle at 10% 8%, rgba(255,62,154,0.08), transparent 40%),
+    radial-gradient(circle at 92% 90%, rgba(0,184,176,0.10), transparent 42%);
+}
+h1{font-family:'Bungee',cursive;}
+
+.wrap{max-width:520px;margin:0 auto;padding:24px 16px 50px;}
+.topbar{
+  position:relative;
+  background:linear-gradient(135deg, var(--ink), var(--purple-dk) 65%, var(--rust-dk));
+  color:var(--paper);
+  border-radius:14px;
+  padding:22px 22px 18px;
+  overflow:hidden;
+  margin-bottom:18px;
+  text-align:center;
+  box-shadow:0 6px 0 var(--rust-dk);
+}
+.topbar .eyebrow{
+  font-family:monospace;
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--mustard);opacity:.9;
+}
+.topbar h1{margin:4px 0 2px;font-size:22px;color:var(--paper);}
+.topbar h1 span{color:var(--mustard);}
+.topbar p{margin:2px 0 0;font-size:13px;color:#ECE1FA;opacity:.9;}
+
+.status-strip{
+  background:var(--ink);color:var(--paper);border-radius:10px;padding:10px 14px;
+  text-align:center;font-size:13px;margin-bottom:14px;font-family:monospace;
+}
+.complete-banner{
+  background:#E0B400;color:#fff;border-radius:10px;padding:14px;text-align:center;
+  margin-bottom:14px;font-family:'Bungee',cursive;font-size:15px;
+}
+
+.mygrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px;}
+.mycell{
+  position:relative;
+  background:#fffdf7;border:2px solid var(--line);border-radius:10px;min-height:90px;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  padding:16px 8px 10px;font-size:13px;line-height:1.3;font-weight:600;cursor:pointer;
+  transition:transform .1s, background .15s, color .15s, border-color .15s;
+}
+.mycell .num{
+  position:absolute;top:5px;left:7px;font-size:10px;font-weight:700;
+  color:#b3a3cc;font-family:monospace;
+}
+.mycell.marked .num{color:rgba(255,255,255,.8);}
+.mycell:active{transform:scale(.96);}
+.mycell.marked{background:var(--good);color:#fff;border-color:#15633f;}
+
+.badge-row{display:flex;justify-content:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.badge{
+  font-family:monospace;font-size:13px;font-weight:700;color:var(--purple-dk);
+  background:#efe4fc;border:1px solid var(--line);border-radius:8px;padding:6px 12px;
+}
+.badge.name{color:var(--rust-dk);background:#ffe3f0;}
+
+/* Casilla inicial: nombre del jugador */
+.gate{background:#fffdf7;border:2px solid var(--line);border-radius:14px;padding:26px 20px;text-align:center;}
+.gate label{
+  display:block;font-size:12px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;color:#6b5a91;margin-bottom:10px;
+}
+.gate input[type=text]{
+  width:100%;border:2px solid var(--line);border-radius:10px;
+  padding:13px;font-family:'Space Grotesk',sans-serif;font-size:16px;color:var(--ink);
+  background:#fff;text-align:center;margin-bottom:14px;
+}
+.gate input:focus{outline:none;border-color:var(--purple);}
+.gate button{
+  width:100%;background:var(--rust);color:#fff;border:none;border-radius:10px;
+  padding:14px;font-family:'Bungee',cursive;font-size:14px;cursor:pointer;
+  box-shadow:0 4px 0 var(--rust-dk);
+}
+.gate button:active{transform:translateY(2px);box-shadow:0 2px 0 var(--rust-dk);}
+.gate .err{color:var(--bad);font-size:12.5px;margin-top:10px;min-height:14px;}
+
+/* Barra de stats: jugadores + ranking en la portada */
+.stats-card{background:#fffdf7;border:2px solid var(--mustard);border-radius:12px;padding:14px;margin-bottom:16px;}
+.stats-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.stats-head h3{font-family:'Bungee',cursive;font-size:13px;margin:0;color:#8a6b00;}
+.player-count{font-family:monospace;font-size:12px;color:#6b5a91;background:#efe4fc;border-radius:6px;padding:3px 8px;}
+.lb-row{display:flex;align-items:center;gap:8px;padding:6px 4px;font-size:13px;border-bottom:1px solid var(--line);}
+.lb-row:last-child{border-bottom:none;}
+.lb-medal{width:20px;text-align:center;}
+.lb-name{flex:1;font-weight:600;}
+.lb-count{font-family:monospace;color:#8a7a9c;font-size:12px;}
+.lb-empty{text-align:center;font-size:12px;color:#9a8ab5;padding:6px;}
+
+.divider{
+  display:flex;align-items:center;gap:10px;margin:20px 0 14px;
+  color:#9a8ab5;font-size:11px;text-transform:uppercase;letter-spacing:.08em;
+}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--line);}
+
+.subtabs{display:flex;gap:6px;margin-bottom:14px;}
+.subtab{
+  flex:1;text-align:center;padding:10px;border-radius:10px;font-size:12px;font-weight:700;
+  cursor:pointer;border:2px solid var(--line);background:#fffdf7;color:#8a7a9c;
+}
+.subtab.active{background:var(--teal);color:#fff;border-color:#007e78;}
+
+.catalog-card{
+  background:#fffdf7;border:2px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;
+}
+.catalog-card.taken{opacity:.7;}
+.catalog-card .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.catalog-card .code{font-family:monospace;font-weight:700;font-size:13px;color:var(--purple-dk);}
+.minigrid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:10px;}
+.minicell{
+  position:relative;background:#faf7ff;border:1px solid var(--line);border-radius:6px;
+  min-height:52px;display:flex;align-items:center;justify-content:center;text-align:center;
+  padding:10px 4px 4px;font-size:10px;line-height:1.2;font-weight:600;color:#4a3a6a;
+}
+.minicell .num{position:absolute;top:2px;left:4px;font-size:8px;color:#b3a3cc;font-family:monospace;}
+.catalog-card button{
+  width:100%;background:var(--teal);color:#fff;border:none;border-radius:8px;
+  padding:9px;font-family:'Bungee',cursive;font-size:11.5px;cursor:pointer;
+  box-shadow:0 3px 0 #007e78;
+}
+.catalog-card button:active{transform:translateY(2px);box-shadow:0 1px 0 #007e78;}
+.taken-tag{
+  text-align:center;font-size:12px;font-weight:700;color:#8a7a9c;background:#f0ecf7;
+  border-radius:8px;padding:9px;
+}
+
+.warn{
+  background:#FFF3D6;border:2px solid var(--mustard);border-radius:10px;
+  padding:10px 12px;font-size:12.5px;margin-bottom:14px;color:#6b5210;text-align:center;
+}
+.info{
+  background:#E8F7F5;border:2px solid var(--teal);border-radius:10px;
+  padding:10px 12px;font-size:12.5px;margin-bottom:14px;color:#00534e;text-align:center;
+}
+
+.upload-box{background:#fffdf7;border:2px solid var(--line);border-radius:12px;padding:18px;text-align:center;}
+.upload-box p{font-size:12.5px;color:#6b5a91;margin:0 0 14px;line-height:1.5;}
+.upload-box input[type=file]{
+  width:100%;margin-bottom:14px;font-size:13px;padding:8px;border:2px dashed var(--line);
+  border-radius:10px;background:#faf7ff;
+}
+.upload-box button{
+  width:100%;background:var(--rust);color:#fff;border:none;border-radius:10px;
+  padding:13px;font-family:'Bungee',cursive;font-size:13px;cursor:pointer;
+  box-shadow:0 4px 0 var(--rust-dk);
+}
+.upload-box button:disabled{opacity:.6;}
+.upload-box button:active:not(:disabled){transform:translateY(2px);box-shadow:0 2px 0 var(--rust-dk);}
+.upload-status{font-size:12px;margin-top:12px;min-height:16px;}
+.upload-status.err{color:var(--bad);}
+.upload-status.ok{color:var(--good);}
+.upload-status.busy{color:#8a7a9c;}
+
+.linklike{
+  display:block;text-align:center;font-size:11px;color:#b5a8cc;margin-top:22px;
+  text-decoration:underline;cursor:pointer;background:none;border:none;font-family:inherit;
+}
+
+.qr-box{background:#fffdf7;border:2px solid var(--teal);border-radius:14px;padding:16px;text-align:center;margin-bottom:16px;}
+.qr-box h3{font-family:'Bungee',cursive;font-size:12px;margin:0 0 10px;color:#007e78;}
+.qr-canvas{display:flex;justify-content:center;margin-bottom:10px;}
+.qr-canvas img, .qr-canvas canvas{border-radius:8px;background:#fff;padding:6px;}
+.qr-url{font-family:monospace;font-size:11px;color:#6b5a91;word-break:break-all;}
+.qr-toggle{
+  display:block;width:100%;text-align:center;background:none;border:1px dashed var(--line);
+  border-radius:8px;padding:8px;font-size:11.5px;color:#8a7a9c;cursor:pointer;margin-bottom:14px;
+}
+
+.history-card{background:#fffdf7;border:2px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;}
+.history-card .hdate{font-family:monospace;font-size:11px;color:#9a8ab5;}
+.history-card .hrow{font-size:12.5px;line-height:1.7;margin-top:4px;}
+</style>
+</head>
+<body>
+<div id="app" class="wrap">Cargando…</div>
+
+<script>
+// Todo (tarjetas, reservas, ranking) vive en Supabase — nadie necesita
+// iniciar sesión en Claude. La exclusividad de tarjeta se garantiza con
+// una clave primaria en la base de datos (card_index): si dos personas
+// intentan coger la misma a la vez, solo una de las dos lo consigue.
+
+const DEFAULT_CARDS = [["La vuelta al mundo de Willy Fog", "Mazinger Z", "Los Diminutos", "Verano Azul", "Dallas (tema principal)", "Rocky", "Barrio Sésamo", "La gallina Cocoua", "Un año más"], ["Los Diminutos", "La abeja Maya", "Scooby-Doo, ¿dónde estás?", "Vacaciones en el Mar", "Cosas de casa", "Ghostbusters", "Mi primera colonia Chispas", "Aquí no hay playa", "No controles"], ["Dr. Slump", "Ulises 31", "Mazinger Z", "Vacaciones en el Mar", "Cosas de casa", "Pretty Woman", "Filvit champú", "Un año más", "Hola Don Pepito"], ["Candy Candy", "Inspector Gadget", "Dragones y Mazmorras", "Vacaciones en el Mar", "Los problemas crecen", "Grease", "Barrio Sésamo", "Había una vez un circo", "Chiquilla"], ["Inspector Gadget", "Mazinger Z", "Los Diminutos", "Vacaciones en el Mar", "Twin Peaks", "Grease", "Un, Dos, Tres", "Había una vez un circo", "Aquí no hay playa"], ["La vuelta al mundo de Willy Fog", "Els barrufets", "El bosque de Tallac", "Fraggle Rock (tema principal)", "Los problemas crecen", "Pretty Woman", "El Show de los Teleñecos", "Hola Don Pepito", "Escuela de calor"], ["Els barrufets", "Candy Candy", "Pipi Calzaslargas", "El Príncipe de Bel-Air", "Dallas (tema principal)", "Cocktail", "Filvit champú", "La gallina Cocoua", "Chiquilla"], ["Mazinger Z", "Doraemon", "Dragones y Mazmorras", "Twin Peaks", "Dallas (tema principal)", "Flashdance", "Un, Dos, Tres", "Un año más", "Aquí no hay playa"], ["Els barrufets", "Doraemon", "Scooby-Doo, ¿dónde estás?", "Verano Azul", "Vacaciones en el Mar", "Rocky", "Nocilla", "No controles", "Aquí no hay playa"], ["Candy Candy", "Mazinger Z", "La vuelta al mundo de Willy Fog", "Fraggle Rock (tema principal)", "Dallas (tema principal)", "My girl", "Mi primera colonia Chispas", "Un año más", "Escuela de calor"], ["Dragones y Mazmorras", "Els barrufets", "El bosque de Tallac", "Vacaciones en el Mar", "Twin Peaks", "Grease", "Mi primera colonia Chispas", "Chiquilla", "Aquí no hay playa"], ["Mazinger Z", "Dr. Slump", "La abeja Maya", "El Príncipe de Bel-Air", "Los problemas crecen", "Pretty Woman", "Mi primera colonia Chispas", "Hola Don Pepito", "Había una vez un circo"], ["Ulises 31", "Pipi Calzaslargas", "Los Diminutos", "Twin Peaks", "Fraggle Rock (tema principal)", "Rocky", "Nocilla", "La gallina Cocoua", "Un año más"], ["Ulises 31", "Pipi Calzaslargas", "Candy Candy", "Verano Azul", "Twin Peaks", "My girl", "Filvit champú", "La gallina Cocoua", "Un año más"], ["Los Diminutos", "Els barrufets", "Candy Candy", "El Príncipe de Bel-Air", "Fraggle Rock (tema principal)", "Pretty Woman", "Mi primera colonia Chispas", "Aquí no hay playa", "La gallina Cocoua"], ["La abeja Maya", "Candy Candy", "Dragones y Mazmorras", "Cosas de casa", "Dallas (tema principal)", "Grease", "Barrio Sésamo", "Un año más", "Chiquilla"], ["Scooby-Doo, ¿dónde estás?", "Ulises 31", "Los Diminutos", "Cosas de casa", "Fraggle Rock (tema principal)", "Rocky", "Un, Dos, Tres", "No controles", "Había una vez un circo"], ["Dr. Slump", "La vuelta al mundo de Willy Fog", "Pipi Calzaslargas", "El Príncipe de Bel-Air", "Verano Azul", "My girl", "El Show de los Teleñecos", "La gallina Cocoua", "Hola Don Pepito"], ["La vuelta al mundo de Willy Fog", "El bosque de Tallac", "Ulises 31", "Dallas (tema principal)", "Vacaciones en el Mar", "My girl", "Barrio Sésamo", "Escuela de calor", "Chiquilla"], ["Dr. Slump", "La abeja Maya", "Doraemon", "Los problemas crecen", "Twin Peaks", "Grease", "El Show de los Teleñecos", "Escuela de calor", "Un año más"], ["Dr. Slump", "Els barrufets", "Dragones y Mazmorras", "Cosas de casa", "Verano Azul", "Ghostbusters", "Un, Dos, Tres", "Escuela de calor", "No controles"], ["Dragones y Mazmorras", "Ulises 31", "Candy Candy", "Cosas de casa", "Verano Azul", "Rocky", "Un, Dos, Tres", "No controles", "Escuela de calor"], ["Mazinger Z", "Doraemon", "Inspector Gadget", "Los problemas crecen", "Cosas de casa", "Cocktail", "El Show de los Teleñecos", "Aquí no hay playa", "Hola Don Pepito"], ["Dragones y Mazmorras", "Scooby-Doo, ¿dónde estás?", "Inspector Gadget", "Twin Peaks", "Vacaciones en el Mar", "Cocktail", "Nocilla", "Chiquilla", "Hola Don Pepito"], ["Los Diminutos", "Doraemon", "Scooby-Doo, ¿dónde estás?", "Los problemas crecen", "Verano Azul", "Cocktail", "Filvit champú", "Había una vez un circo", "La gallina Cocoua"], ["Inspector Gadget", "El bosque de Tallac", "Els barrufets", "Los problemas crecen", "Dallas (tema principal)", "Flashdance", "Filvit champú", "Había una vez un circo", "Escuela de calor"], ["El bosque de Tallac", "Doraemon", "Inspector Gadget", "El Príncipe de Bel-Air", "Fraggle Rock (tema principal)", "Ghostbusters", "Barrio Sésamo", "Hola Don Pepito", "La gallina Cocoua"], ["La vuelta al mundo de Willy Fog", "Scooby-Doo, ¿dónde estás?", "Dr. Slump", "Twin Peaks", "Cosas de casa", "Ghostbusters", "El Show de los Teleñecos", "No controles", "Chiquilla"], ["Inspector Gadget", "Doraemon", "Dr. Slump", "El Príncipe de Bel-Air", "Fraggle Rock (tema principal)", "My girl", "Nocilla", "Había una vez un circo", "No controles"], ["Scooby-Doo, ¿dónde estás?", "La abeja Maya", "El bosque de Tallac", "El Príncipe de Bel-Air", "Verano Azul", "Flashdance", "Nocilla", "No controles", "Chiquilla"]];
+
+const SUPABASE_URL = 'https://ympfqydtolkqvzzcvqqw.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_UXiQXV7xLHwE6YWOEafRgw_81GRCPbE';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js";
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+const playerId = (crypto.randomUUID ? crypto.randomUUID() : ('p'+Math.random().toString(36).slice(2)+Date.now()));
+
+let liveConfig = { version: 0, cards: DEFAULT_CARDS };
+let claims = new Map(); // card_index -> {player_id, name, marked}
+const marked = new Set();
+let myName = '';
+let myIndex = null;   // índice de mi tarjeta (0-based), null si aún no he elegido
+let mySongs = null;
+let subView = 'actual'; // 'actual' | 'cargar'
+let configChannel = null;
+let claimsChannel = null;
+
+// --- Config de la partida ------------------------------------------------
+async function fetchConfig(){
+  try{
+    const { data, error } = await sb.from('bingo_config').select('cards,version').eq('id',1).single();
+    if(!error && data && Array.isArray(data.cards)) return data;
+  }catch(e){ /* tabla no creada todavía: usamos DEFAULT_CARDS */ }
+  return { version: 0, cards: DEFAULT_CARDS };
+}
+
+async function archiveCurrentGame(){
+  try{
+    const { data } = await sb.from('bingo_claims').select('name,marked,line_at,bingo_at');
+    const entries = data || [];
+    let lineWinner=null, lineAt=null, bingoWinner=null, bingoAt=null;
+    for(const e of entries){
+      if(e.line_at && (!lineAt || e.line_at < lineAt)){ lineAt = e.line_at; lineWinner = e.name; }
+      if(e.bingo_at && (!bingoAt || e.bingo_at < bingoAt)){ bingoAt = e.bingo_at; bingoWinner = e.name; }
+    }
+    if(entries.length === 0) return; // nadie jugó, no vale la pena archivar
+    await sb.from('bingo_history').insert({
+      num_players: entries.length,
+      num_cards: liveConfig.cards.length,
+      line_winner: lineWinner, line_at: lineAt,
+      bingo_winner: bingoWinner, bingo_at: bingoAt
+    });
+  }catch(e){ /* si falla el archivado, no bloqueamos la carga de la partida nueva */ }
+}
+
+async function saveConfig(newCards){
+  const current = await fetchConfig();
+  await archiveCurrentGame();
+  const { data, error } = await sb.from('bingo_config')
+    .update({ cards: newCards, version: (current.version||0)+1, updated_at: new Date().toISOString() })
+    .eq('id',1).select('cards,version').single();
+  if(error) throw error;
+  // al cargar partida nueva, las reservas anteriores ya no tienen sentido
+  try{ await sb.from('bingo_claims').delete().neq('card_index', -1); }catch(e){}
+  return data;
+}
+
+function subscribeConfigChanges(){
+  if(configChannel) return;
+  configChannel = sb.channel('bingo_config_watch')
+    .on('postgres_changes', {event:'UPDATE', schema:'public', table:'bingo_config', filter:'id=eq.1'}, payload=>{
+      const row = payload.new;
+      if(!row || row.version === liveConfig.version) return;
+      liveConfig = row;
+      claims.clear();
+      myIndex = null; mySongs = null; marked.clear();
+      paintHome('El anfitrión ha cargado una partida nueva — ¡elige tu tarjeta otra vez!');
+    })
+    .subscribe();
+}
+
+// --- Reservas de tarjetas (claims) ---------------------------------------
+async function fetchClaims(){
+  try{
+    const { data, error } = await sb.from('bingo_claims').select('card_index,player_id,name,marked');
+    if(!error && data){
+      claims = new Map(data.map(r=>[r.card_index, r]));
+    }
+  }catch(e){ /* tabla no creada todavía */ }
+}
+
+function subscribeClaimsChanges(){
+  if(claimsChannel) return;
+  claimsChannel = sb.channel('bingo_claims_watch')
+    .on('postgres_changes', {event:'*', schema:'public', table:'bingo_claims'}, payload=>{
+      if(payload.eventType === 'DELETE'){
+        claims.delete(payload.old.card_index);
+      } else {
+        claims.set(payload.new.card_index, payload.new);
+      }
+      rerenderLive();
+    })
+    .subscribe();
+}
+
+function rerenderLive(){
+  // repinta solo las partes que dependen de "claims", sin perder el estado local
+  const app = document.getElementById('app');
+  if(!app) return;
+  if(myIndex !== null){
+    updateStatsBox();
+  } else if(document.getElementById('cataloglist')){
+    paintHome();
+  } else if(document.getElementById('gate-stats')){
+    updateStatsBox();
+  }
+}
+
+async function claimCard(idx){
+  try{
+    const { error } = await sb.from('bingo_claims').insert({
+      card_index: idx, player_id: playerId, name: myName, marked: 0
+    });
+    if(error){
+      if(error.code === '23505'){
+        return { ok:false, reason:'taken' }; // conflicto real de clave primaria
+      }
+      return { ok:false, reason:'error', message: error.message || JSON.stringify(error) };
+    }
+    claims.set(idx, {card_index: idx, player_id: playerId, name: myName, marked: 0});
+    return { ok:true };
+  }catch(e){
+    return { ok:false, reason:'error', message: (e && e.message) || String(e) };
+  }
+}
+
+const LINES = [[0,1,2],[3,4,5],[6,7,8]]; // filas horizontales
+
+function hasLine(){
+  return LINES.some(row => row.every(i => marked.has(i)));
+}
+
+async function updateMyMark(){
+  if(myIndex===null) return;
+  const existing = claims.get(myIndex) || {};
+  const payload = { marked: marked.size, updated_at: new Date().toISOString() };
+  if(hasLine() && !existing.line_at) payload.line_at = new Date().toISOString();
+  if(marked.size===9 && !existing.bingo_at) payload.bingo_at = new Date().toISOString();
+  try{
+    const { data } = await sb.from('bingo_claims').update(payload)
+      .eq('card_index', myIndex).eq('player_id', playerId).select().single();
+    if(data) claims.set(myIndex, data);
+  }catch(e){ /* no bloquea el juego */ }
+}
+
+// --- Ranking / contador ----------------------------------------------------
+function computeStats(){
+  const entries = Array.from(claims.values());
+  const count = entries.length;
+  const top3 = entries.slice().sort((a,b)=> b.marked - a.marked).slice(0,3);
+  return {count, top3};
+}
+
+function statsBoxHTML(id){
+  const {count, top3} = computeStats();
+  const medals = ['🥇','🥈','🥉'];
+  return `
+    <div class="stats-card" id="${id}">
+      <div class="stats-head">
+        <h3>🏆 Ranking</h3>
+        <span class="player-count">🎟️ ${count} jugador${count===1?'':'es'}</span>
+      </div>
+      ${top3.length
+        ? top3.map((e,i)=>`
+            <div class="lb-row">
+              <span class="lb-medal">${medals[i]}</span>
+              <span class="lb-name">${esc(e.name||'Anónimo')}</span>
+              <span class="lb-count">${e.marked}/9</span>
+            </div>`).join('')
+        : `<div class="lb-empty">Todavía no hay nadie con tarjeta.</div>`}
+    </div>`;
+}
+
+function updateStatsBox(){
+  const el = document.getElementById('stats-box') || document.getElementById('gate-stats');
+  if(el) el.outerHTML = statsBoxHTML(el.id);
+}
+
+// --- Parseo del PDF en el navegador ---------------------------------------
+async function parsePdfToCards(file){
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+  const cards = [];
+  const warnings = [];
+  for(let p=1; p<=pdf.numPages; p++){
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+    let items = content.items
+      .map(it=>({str: (it.str||'').trim(), x: it.transform[4], y: it.transform[5]}))
+      .filter(it=>it.str.length>0);
+    if(items.length===0) continue;
+
+    const lines = [];
+    const tol = 3;
+    for(const it of items){
+      let line = lines.find(l => Math.abs(l.y - it.y) < tol);
+      if(!line){ line = {y: it.y, items: []}; lines.push(line); }
+      line.items.push(it);
+    }
+    lines.sort((a,b)=> b.y - a.y);
+
+    const contentLines = lines.filter(l=>{
+      const text = l.items.map(i=>i.str).join(' ');
+      return !/^TARJETA\b/i.test(text) && !/SALVADOS POR LA CANCI/i.test(text);
+    });
+
+    const songsForCard = [];
+    for(const line of contentLines){
+      const sorted = line.items.slice().sort((a,b)=> a.x-b.x);
+      let colTexts;
+      if(sorted.length === 3){
+        colTexts = sorted.map(i=>i.str);
+      } else {
+        const groups = [];
+        let cur = null, lastX = null;
+        for(const it of sorted){
+          if(cur===null || (it.x - lastX) > 18){
+            cur = [it]; groups.push(cur);
+          } else {
+            cur.push(it);
+          }
+          lastX = it.x;
+        }
+        colTexts = groups.map(g=> g.map(i=>i.str).join(' ').trim());
+      }
+      songsForCard.push(...colTexts);
+    }
+
+    if(songsForCard.length !== 9){
+      warnings.push(`Página ${p}: se detectaron ${songsForCard.length} canciones en vez de 9.`);
+    }
+    cards.push(songsForCard);
+  }
+  return {cards, warnings};
+}
+
+function toggleQR(wrapId, btnId){
+  const wrap = document.getElementById(wrapId);
+  const btn = document.getElementById(btnId);
+  if(!wrap) return;
+  if(wrap.innerHTML.trim()){
+    wrap.innerHTML = '';
+    if(btn) btn.textContent = '📱 Mostrar código para invitar a más gente';
+    return;
+  }
+  const url = window.location.href;
+  wrap.innerHTML = `
+    <div class="qr-box">
+      <h3>Escanea para unirte</h3>
+      <div class="qr-canvas" id="${wrapId}-canvas"></div>
+      <div class="qr-url">${esc(url)}</div>
+    </div>`;
+  new QRCode(document.getElementById(wrapId+'-canvas'), {
+    text: url, width: 150, height: 150,
+    colorDark: '#1B1330', colorLight: '#fffdf7', correctLevel: QRCode.CorrectLevel.M
+  });
+  if(btn) btn.textContent = '📱 Ocultar código';
+}
+
+// --- Vista: puerta de entrada (nombre) -------------------------------------
+async function paintGate(){
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="topbar">
+      <div class="eyebrow">Bingo musical</div>
+      <h1>SALVADOS POR LA <span>CANCIÓN</span></h1>
+      <p>Introduce tu nombre para empezar</p>
+    </div>
+    ${statsBoxHTML('gate-stats')}
+    <div class="gate">
+      <label>Tu nombre</label>
+      <input type="text" id="gatename" maxlength="20" placeholder="Ej: Marta">
+      <button id="gatego">ENTRAR</button>
+      <div class="err" id="gateerr"></div>
+    </div>
+    <button class="qr-toggle" id="qrtoggle">📱 Mostrar código para invitar a más gente</button>
+    <div id="qrwrap"></div>
+  `;
+  document.getElementById('qrtoggle').onclick = ()=> toggleQR('qrwrap', 'qrtoggle');
+  const input = document.getElementById('gatename');
+  input.focus();
+  const submit = ()=>{
+    const v = input.value.trim();
+    if(!v){
+      document.getElementById('gateerr').textContent = 'Escribe tu nombre antes de continuar.';
+      return;
+    }
+    myName = v;
+    paintHome();
+  };
+  document.getElementById('gatego').onclick = submit;
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); submit(); } });
+}
+
+// --- Vista: tarjeta elegida ------------------------------------------------
+function renderGrid(songs){
+  return songs.map((song,i)=>{
+    const isMarked = marked.has(i);
+    return `<div class="mycell ${isMarked?'marked':''}" data-mark="${i}">
+      <span class="num">${i+1}</span>
+      <div>${esc(song)}</div>
+    </div>`;
+  }).join('');
+}
+
+async function releaseCard(){
+  if(myIndex===null) return;
+  try{
+    await sb.from('bingo_claims').delete().eq('card_index', myIndex).eq('player_id', playerId);
+    claims.delete(myIndex);
+  }catch(e){ /* si falla, igualmente dejamos que el jugador vuelva al inicio */ }
+}
+
+function paintCard(){
+  const app = document.getElementById('app');
+  const total = mySongs.length;
+  const full = marked.size===total;
+  const line = hasLine();
+  app.innerHTML = `
+    <div class="topbar">
+      <div class="eyebrow">Tu tarjeta</div>
+      <h1>SALVADOS POR LA <span>CANCIÓN</span></h1>
+      <p>Toca la canción que creas que está sonando</p>
+    </div>
+    <div class="status-strip">${marked.size} / ${total} marcadas</div>
+    ${full? `<div class="complete-banner">🎉 ¡TARJETA COMPLETA! Avisa al anfitrión</div>` : (line? `<div class="complete-banner" style="background:var(--teal);">📏 ¡LÍNEA! Avisa al anfitrión</div>` : '')}
+    <div class="badge-row">
+      <span class="badge">Tarjeta ${myIndex+1}</span>
+      <span class="badge name">👤 ${esc(myName)}</span>
+    </div>
+    <div class="mygrid">${renderGrid(mySongs)}</div>
+    ${statsBoxHTML('stats-box')}
+    <button class="linklike" id="backhome">← Volver al inicio y cambiar de tarjeta</button>
+  `;
+  document.getElementById('backhome').onclick = async ()=>{
+    await releaseCard();
+    myIndex = null;
+    mySongs = null;
+    marked.clear();
+    paintHome();
+  };
+  document.querySelectorAll('[data-mark]').forEach(el=>{
+    el.onclick = ()=>{
+      const i = parseInt(el.dataset.mark);
+      if(marked.has(i)) marked.delete(i); else marked.add(i);
+      paintCard();
+      updateMyMark();
+    };
+  });
+}
+
+// --- Vista: catálogo / carga de PDF -----------------------------------------
+function miniGridHTML(songs){
+  return songs.map((song,i)=>`
+    <div class="minicell"><span class="num">${i+1}</span>${esc(song)}</div>
+  `).join('');
+}
+
+function catalogListHTML(){
+  return liveConfig.cards.map((songs,idx)=>{
+    const taken = claims.get(idx);
+    return `
+      <div class="catalog-card ${taken?'taken':''}">
+        <div class="head"><span class="code">Tarjeta ${idx+1}</span></div>
+        <div class="minigrid">${miniGridHTML(songs)}</div>
+        ${taken
+          ? `<div class="taken-tag">🔒 Cogida por ${esc(taken.name||'alguien')}</div>`
+          : `<button data-pick="${idx}">Elegir esta tarjeta</button>`}
+      </div>`;
+  }).join('');
+}
+
+function uploadBoxHTML(){
+  return `
+    <div class="upload-box">
+      <p>Sube el PDF con las tarjetas de la partida nueva (formato "TARJETA 1", "TARJETA 2"...). Al cargarlo, sustituirá la partida actual para todos los jugadores, que volverán automáticamente al catálogo para elegir de nuevo.</p>
+      <input type="file" id="pdfinput" accept="application/pdf">
+      <button id="pdfgo">CARGAR Y GENERAR TARJETAS</button>
+      <div class="upload-status" id="pdfstatus"></div>
+    </div>
+  `;
+}
+
+function bindUploadHandlers(){
+  const btn = document.getElementById('pdfgo');
+  const fileInput = document.getElementById('pdfinput');
+  const status = document.getElementById('pdfstatus');
+  btn.onclick = async ()=>{
+    const file = fileInput.files && fileInput.files[0];
+    if(!file){
+      status.className = 'upload-status err';
+      status.textContent = 'Selecciona primero un archivo PDF.';
+      return;
+    }
+    btn.disabled = true;
+    status.className = 'upload-status busy';
+    status.textContent = 'Leyendo el PDF…';
+    try{
+      const {cards, warnings} = await parsePdfToCards(file);
+      if(cards.length === 0){
+        throw new Error('No se ha encontrado ninguna tarjeta en el PDF.');
+      }
+      const badCount = warnings.length;
+      status.textContent = `Guardando ${cards.length} tarjetas…`;
+      liveConfig = await saveConfig(cards);
+      claims.clear();
+      status.className = badCount ? 'upload-status err' : 'upload-status ok';
+      status.textContent = badCount
+        ? `Guardadas ${cards.length} tarjetas, pero ${badCount} página(s) no dieron exactamente 9 canciones — revísalas: ${warnings.join(' ')}`
+        : `✓ ${cards.length} tarjetas cargadas correctamente. Todos los jugadores volverán al catálogo.`;
+      subView = 'actual';
+      setTimeout(()=>{ paintHome(); }, 900);
+    }catch(e){
+      status.className = 'upload-status err';
+      status.textContent = 'Error al leer el PDF: ' + (e.message||e);
+    }finally{
+      btn.disabled = false;
+    }
+  };
+}
+
+// --- Historial de partidas -------------------------------------------------
+async function loadHistory(){
+  const box = document.getElementById('historylist');
+  if(!box) return;
+  try{
+    const { data, error } = await sb.from('bingo_history')
+      .select('*').order('ended_at', {ascending:false}).limit(20);
+    if(error || !data || data.length===0){
+      box.innerHTML = `<div class="lb-empty">Todavía no hay partidas archivadas — se guardan solas cuando se carga una partida nueva.</div>`;
+      return;
+    }
+    box.innerHTML = data.map(h=>{
+      const date = new Date(h.ended_at).toLocaleString('es-ES', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+      return `
+        <div class="history-card">
+          <div class="hdate">${date} · 🎟️ ${h.num_players} jugador${h.num_players===1?'':'es'} · ${h.num_cards} tarjetas</div>
+          <div class="hrow">📏 Línea: <b>${h.line_winner? esc(h.line_winner) : '— nadie —'}</b></div>
+          <div class="hrow">🏆 Bingo: <b>${h.bingo_winner? esc(h.bingo_winner) : '— nadie —'}</b></div>
+        </div>`;
+    }).join('');
+  }catch(e){
+    box.innerHTML = `<div class="lb-empty">No se pudo cargar el historial.</div>`;
+  }
+}
+
+function paintHome(msg){
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="topbar">
+      <div class="eyebrow">Bingo musical</div>
+      <h1>SALVADOS POR LA <span>CANCIÓN</span></h1>
+      <p>Hola ${esc(myName)} — elige tu tarjeta</p>
+    </div>
+
+    ${msg? `<div class="info">${esc(msg)}</div>` : ''}
+    ${statsBoxHTML('stats-box')}
+    <button class="qr-toggle" id="qrtoggle">📱 Invitar a más gente</button>
+    <div id="qrwrap"></div>
+    <div class="warn">⚠️ En cuanto elijas una tarjeta, quedará bloqueada solo para ti — nadie más podrá cogerla mientras la tengas. Si quieres cambiarla, puedes volver al inicio desde tu tarjeta.</div>
+
+    <div class="subtabs">
+      <div class="subtab ${subView==='actual'?'active':''}" id="subactual">Partida actual</div>
+      <div class="subtab ${subView==='cargar'?'active':''}" id="subcargar">Cargar nueva</div>
+      <div class="subtab ${subView==='historial'?'active':''}" id="subhistorial">Historial</div>
+    </div>
+
+    <div id="catalogbody">
+      ${subView==='actual' ? `<div id="cataloglist">${catalogListHTML()}</div>`
+        : subView==='cargar' ? uploadBoxHTML()
+        : `<div id="historylist"><div class="lb-empty">Cargando historial…</div></div>`}
+    </div>
+  `;
+
+  document.getElementById('qrtoggle').onclick = ()=> toggleQR('qrwrap', 'qrtoggle');
+  document.getElementById('subactual').onclick = ()=>{ subView='actual'; paintHome(); };
+  document.getElementById('subcargar').onclick = ()=>{ subView='cargar'; paintHome(); };
+  document.getElementById('subhistorial').onclick = ()=>{ subView='historial'; paintHome(); };
+
+  if(subView==='actual'){
+    document.querySelectorAll('[data-pick]').forEach(el=>{
+      el.onclick = async ()=>{
+        const idx = parseInt(el.dataset.pick);
+        el.disabled = true;
+        el.textContent = 'Reservando…';
+        const res = await claimCard(idx);
+        if(!res.ok){
+          if(res.reason === 'taken'){
+            paintHome('Uy, alguien acaba de coger esa tarjeta justo antes que tú. Elige otra.');
+          } else {
+            paintHome('Error al reservar la tarjeta: ' + res.message + ' — revisa que hayas ejecutado el SQL en Supabase (tabla bingo_claims).');
+          }
+          return;
+        }
+        myIndex = idx;
+        mySongs = liveConfig.cards[idx];
+        marked.clear();
+        paintCard();
+      };
+    });
+  } else if(subView==='cargar'){
+    bindUploadHandlers();
+  } else {
+    loadHistory();
+  }
+}
+
+async function boot(){
+  liveConfig = await fetchConfig();
+  await fetchClaims();
+  subscribeConfigChanges();
+  subscribeClaimsChanges();
+  paintGate();
+}
+
+document.addEventListener('DOMContentLoaded', boot);
+</script>
+</body>
+</html>
