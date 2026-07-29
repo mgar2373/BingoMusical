@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>Salvados por la Canción</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
@@ -89,7 +88,6 @@ h1{font-family:'Bungee',cursive;}
 }
 .badge.name{color:var(--rust-dk);background:#ffe3f0;}
 
-/* Casilla inicial: nombre del jugador */
 .gate{background:#fffdf7;border:2px solid var(--line);border-radius:14px;padding:26px 20px;text-align:center;}
 .gate label{
   display:block;font-size:12px;font-weight:700;text-transform:uppercase;
@@ -109,7 +107,6 @@ h1{font-family:'Bungee',cursive;}
 .gate button:active{transform:translateY(2px);box-shadow:0 2px 0 var(--rust-dk);}
 .gate .err{color:var(--bad);font-size:12.5px;margin-top:10px;min-height:14px;}
 
-/* Barra de stats: jugadores + ranking en la portada */
 .stats-card{background:#fffdf7;border:2px solid var(--mustard);border-radius:12px;padding:14px;margin-bottom:16px;}
 .stats-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
 .stats-head h3{font-family:'Bungee',cursive;font-size:13px;margin:0;color:#8a6b00;}
@@ -121,23 +118,16 @@ h1{font-family:'Bungee',cursive;}
 .lb-count{font-family:monospace;color:#8a7a9c;font-size:12px;}
 .lb-empty{text-align:center;font-size:12px;color:#9a8ab5;padding:6px;}
 
-.divider{
-  display:flex;align-items:center;gap:10px;margin:20px 0 14px;
-  color:#9a8ab5;font-size:11px;text-transform:uppercase;letter-spacing:.08em;
+.tabs{display:flex;gap:8px;margin-bottom:14px;}
+.tab{
+  flex:1;text-align:center;padding:10px;border-radius:10px;font-family:'Bungee',cursive;
+  font-size:12px;cursor:pointer;border:2px solid var(--line);background:#fffdf7;color:#8a7a9c;
 }
-.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--line);}
-
-.subtabs{display:flex;gap:6px;margin-bottom:14px;}
-.subtab{
-  flex:1;text-align:center;padding:10px;border-radius:10px;font-size:12px;font-weight:700;
-  cursor:pointer;border:2px solid var(--line);background:#fffdf7;color:#8a7a9c;
-}
-.subtab.active{background:var(--teal);color:#fff;border-color:#007e78;}
+.tab.active{background:var(--purple);color:#fff;border-color:var(--purple-dk);}
 
 .catalog-card{
   background:#fffdf7;border:2px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;
 }
-.catalog-card.taken{opacity:.7;}
 .catalog-card .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
 .catalog-card .code{font-family:monospace;font-weight:700;font-size:13px;color:var(--purple-dk);}
 .minigrid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:10px;}
@@ -167,29 +157,6 @@ h1{font-family:'Bungee',cursive;}
   padding:10px 12px;font-size:12.5px;margin-bottom:14px;color:#00534e;text-align:center;
 }
 
-.upload-box{background:#fffdf7;border:2px solid var(--line);border-radius:12px;padding:18px;text-align:center;}
-.upload-box p{font-size:12.5px;color:#6b5a91;margin:0 0 14px;line-height:1.5;}
-.upload-box input[type=file]{
-  width:100%;margin-bottom:14px;font-size:13px;padding:8px;border:2px dashed var(--line);
-  border-radius:10px;background:#faf7ff;
-}
-.upload-box button{
-  width:100%;background:var(--rust);color:#fff;border:none;border-radius:10px;
-  padding:13px;font-family:'Bungee',cursive;font-size:13px;cursor:pointer;
-  box-shadow:0 4px 0 var(--rust-dk);
-}
-.upload-box button:disabled{opacity:.6;}
-.upload-box button:active:not(:disabled){transform:translateY(2px);box-shadow:0 2px 0 var(--rust-dk);}
-.upload-status{font-size:12px;margin-top:12px;min-height:16px;}
-.upload-status.err{color:var(--bad);}
-.upload-status.ok{color:var(--good);}
-.upload-status.busy{color:#8a7a9c;}
-
-.linklike{
-  display:block;text-align:center;font-size:11px;color:#b5a8cc;margin-top:22px;
-  text-decoration:underline;cursor:pointer;background:none;border:none;font-family:inherit;
-}
-
 .qr-box{background:#fffdf7;border:2px solid var(--teal);border-radius:14px;padding:16px;text-align:center;margin-bottom:16px;}
 .qr-box h3{font-family:'Bungee',cursive;font-size:12px;margin:0 0 10px;color:#007e78;}
 .qr-canvas{display:flex;justify-content:center;margin-bottom:10px;}
@@ -200,140 +167,48 @@ h1{font-family:'Bungee',cursive;}
   border-radius:8px;padding:8px;font-size:11.5px;color:#8a7a9c;cursor:pointer;margin-bottom:14px;
 }
 
-.history-card{background:#fffdf7;border:2px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;}
-.history-card .hdate{font-family:monospace;font-size:11px;color:#9a8ab5;}
-.history-card .hrow{font-size:12.5px;line-height:1.7;margin-top:4px;}
+.linklike{
+  display:block;text-align:center;font-size:11px;color:#b5a8cc;margin-top:22px;
+  text-decoration:underline;cursor:pointer;background:none;border:none;font-family:inherit;
+}
 </style>
 </head>
 <body>
 <div id="app" class="wrap">Cargando…</div>
 
 <script>
-// Todo (tarjetas, reservas, ranking) vive en Supabase — nadie necesita
-// iniciar sesión en Claude. La exclusividad de tarjeta se garantiza con
-// una clave primaria en la base de datos (card_index): si dos personas
-// intentan coger la misma a la vez, solo una de las dos lo consigue.
+// Dos partidas fijas (sus tarjetas están incrustadas en este mismo archivo,
+// no dependen de Supabase). Solo las reservas de tarjeta y el ranking en
+// vivo pasan por Supabase — nadie necesita cuenta de Claude ni de Supabase.
 
-const DEFAULT_CARDS = [["La vuelta al mundo de Willy Fog", "Mazinger Z", "Los Diminutos", "Verano Azul", "Dallas (tema principal)", "Rocky", "Barrio Sésamo", "La gallina Cocoua", "Un año más"], ["Los Diminutos", "La abeja Maya", "Scooby-Doo, ¿dónde estás?", "Vacaciones en el Mar", "Cosas de casa", "Ghostbusters", "Mi primera colonia Chispas", "Aquí no hay playa", "No controles"], ["Dr. Slump", "Ulises 31", "Mazinger Z", "Vacaciones en el Mar", "Cosas de casa", "Pretty Woman", "Filvit champú", "Un año más", "Hola Don Pepito"], ["Candy Candy", "Inspector Gadget", "Dragones y Mazmorras", "Vacaciones en el Mar", "Los problemas crecen", "Grease", "Barrio Sésamo", "Había una vez un circo", "Chiquilla"], ["Inspector Gadget", "Mazinger Z", "Los Diminutos", "Vacaciones en el Mar", "Twin Peaks", "Grease", "Un, Dos, Tres", "Había una vez un circo", "Aquí no hay playa"], ["La vuelta al mundo de Willy Fog", "Els barrufets", "El bosque de Tallac", "Fraggle Rock (tema principal)", "Los problemas crecen", "Pretty Woman", "El Show de los Teleñecos", "Hola Don Pepito", "Escuela de calor"], ["Els barrufets", "Candy Candy", "Pipi Calzaslargas", "El Príncipe de Bel-Air", "Dallas (tema principal)", "Cocktail", "Filvit champú", "La gallina Cocoua", "Chiquilla"], ["Mazinger Z", "Doraemon", "Dragones y Mazmorras", "Twin Peaks", "Dallas (tema principal)", "Flashdance", "Un, Dos, Tres", "Un año más", "Aquí no hay playa"], ["Els barrufets", "Doraemon", "Scooby-Doo, ¿dónde estás?", "Verano Azul", "Vacaciones en el Mar", "Rocky", "Nocilla", "No controles", "Aquí no hay playa"], ["Candy Candy", "Mazinger Z", "La vuelta al mundo de Willy Fog", "Fraggle Rock (tema principal)", "Dallas (tema principal)", "My girl", "Mi primera colonia Chispas", "Un año más", "Escuela de calor"], ["Dragones y Mazmorras", "Els barrufets", "El bosque de Tallac", "Vacaciones en el Mar", "Twin Peaks", "Grease", "Mi primera colonia Chispas", "Chiquilla", "Aquí no hay playa"], ["Mazinger Z", "Dr. Slump", "La abeja Maya", "El Príncipe de Bel-Air", "Los problemas crecen", "Pretty Woman", "Mi primera colonia Chispas", "Hola Don Pepito", "Había una vez un circo"], ["Ulises 31", "Pipi Calzaslargas", "Los Diminutos", "Twin Peaks", "Fraggle Rock (tema principal)", "Rocky", "Nocilla", "La gallina Cocoua", "Un año más"], ["Ulises 31", "Pipi Calzaslargas", "Candy Candy", "Verano Azul", "Twin Peaks", "My girl", "Filvit champú", "La gallina Cocoua", "Un año más"], ["Los Diminutos", "Els barrufets", "Candy Candy", "El Príncipe de Bel-Air", "Fraggle Rock (tema principal)", "Pretty Woman", "Mi primera colonia Chispas", "Aquí no hay playa", "La gallina Cocoua"], ["La abeja Maya", "Candy Candy", "Dragones y Mazmorras", "Cosas de casa", "Dallas (tema principal)", "Grease", "Barrio Sésamo", "Un año más", "Chiquilla"], ["Scooby-Doo, ¿dónde estás?", "Ulises 31", "Los Diminutos", "Cosas de casa", "Fraggle Rock (tema principal)", "Rocky", "Un, Dos, Tres", "No controles", "Había una vez un circo"], ["Dr. Slump", "La vuelta al mundo de Willy Fog", "Pipi Calzaslargas", "El Príncipe de Bel-Air", "Verano Azul", "My girl", "El Show de los Teleñecos", "La gallina Cocoua", "Hola Don Pepito"], ["La vuelta al mundo de Willy Fog", "El bosque de Tallac", "Ulises 31", "Dallas (tema principal)", "Vacaciones en el Mar", "My girl", "Barrio Sésamo", "Escuela de calor", "Chiquilla"], ["Dr. Slump", "La abeja Maya", "Doraemon", "Los problemas crecen", "Twin Peaks", "Grease", "El Show de los Teleñecos", "Escuela de calor", "Un año más"], ["Dr. Slump", "Els barrufets", "Dragones y Mazmorras", "Cosas de casa", "Verano Azul", "Ghostbusters", "Un, Dos, Tres", "Escuela de calor", "No controles"], ["Dragones y Mazmorras", "Ulises 31", "Candy Candy", "Cosas de casa", "Verano Azul", "Rocky", "Un, Dos, Tres", "No controles", "Escuela de calor"], ["Mazinger Z", "Doraemon", "Inspector Gadget", "Los problemas crecen", "Cosas de casa", "Cocktail", "El Show de los Teleñecos", "Aquí no hay playa", "Hola Don Pepito"], ["Dragones y Mazmorras", "Scooby-Doo, ¿dónde estás?", "Inspector Gadget", "Twin Peaks", "Vacaciones en el Mar", "Cocktail", "Nocilla", "Chiquilla", "Hola Don Pepito"], ["Los Diminutos", "Doraemon", "Scooby-Doo, ¿dónde estás?", "Los problemas crecen", "Verano Azul", "Cocktail", "Filvit champú", "Había una vez un circo", "La gallina Cocoua"], ["Inspector Gadget", "El bosque de Tallac", "Els barrufets", "Los problemas crecen", "Dallas (tema principal)", "Flashdance", "Filvit champú", "Había una vez un circo", "Escuela de calor"], ["El bosque de Tallac", "Doraemon", "Inspector Gadget", "El Príncipe de Bel-Air", "Fraggle Rock (tema principal)", "Ghostbusters", "Barrio Sésamo", "Hola Don Pepito", "La gallina Cocoua"], ["La vuelta al mundo de Willy Fog", "Scooby-Doo, ¿dónde estás?", "Dr. Slump", "Twin Peaks", "Cosas de casa", "Ghostbusters", "El Show de los Teleñecos", "No controles", "Chiquilla"], ["Inspector Gadget", "Doraemon", "Dr. Slump", "El Príncipe de Bel-Air", "Fraggle Rock (tema principal)", "My girl", "Nocilla", "Había una vez un circo", "No controles"], ["Scooby-Doo, ¿dónde estás?", "La abeja Maya", "El bosque de Tallac", "El Príncipe de Bel-Air", "Verano Azul", "Flashdance", "Nocilla", "No controles", "Chiquilla"]];
+const CARDS = {"p1": [["La vuelta al mundo de Willy Fog", "Mazinger Z", "Los Diminutos", "Verano Azul", "Dallas (tema principal)", "Rocky", "Barrio Sésamo", "La gallina Cocoua", "Un año más"], ["Los Diminutos", "La abeja Maya", "Scooby-Doo, ¿dónde estás?", "Vacaciones en el Mar", "Cosas de casa", "Ghostbusters", "Mi primera colonia Chispas", "Aquí no hay playa", "No controles"], ["Dr. Slump", "Ulises 31", "Mazinger Z", "Vacaciones en el Mar", "Cosas de casa", "Pretty Woman", "Filvit champú", "Un año más", "Hola Don Pepito"], ["Candy Candy", "Inspector Gadget", "Dragones y Mazmorras", "Vacaciones en el Mar", "Los problemas crecen", "Grease", "Barrio Sésamo", "Había una vez un circo", "Chiquilla"], ["Inspector Gadget", "Mazinger Z", "Los Diminutos", "Vacaciones en el Mar", "Twin Peaks", "Grease", "Un, Dos, Tres", "Había una vez un circo", "Aquí no hay playa"], ["La vuelta al mundo de Willy Fog", "Els barrufets", "El bosque de Tallac", "Fraggle Rock (tema principal)", "Los problemas crecen", "Pretty Woman", "El Show de los Teleñecos", "Hola Don Pepito", "Escuela de calor"], ["Els barrufets", "Candy Candy", "Pipi Calzaslargas", "El Príncipe de Bel-Air", "Dallas (tema principal)", "Cocktail", "Filvit champú", "La gallina Cocoua", "Chiquilla"], ["Mazinger Z", "Doraemon", "Dragones y Mazmorras", "Twin Peaks", "Dallas (tema principal)", "Flashdance", "Un, Dos, Tres", "Un año más", "Aquí no hay playa"], ["Els barrufets", "Doraemon", "Scooby-Doo, ¿dónde estás?", "Verano Azul", "Vacaciones en el Mar", "Rocky", "Nocilla", "No controles", "Aquí no hay playa"], ["Candy Candy", "Mazinger Z", "La vuelta al mundo de Willy Fog", "Fraggle Rock (tema principal)", "Dallas (tema principal)", "My girl", "Mi primera colonia Chispas", "Un año más", "Escuela de calor"], ["Dragones y Mazmorras", "Els barrufets", "El bosque de Tallac", "Vacaciones en el Mar", "Twin Peaks", "Grease", "Mi primera colonia Chispas", "Chiquilla", "Aquí no hay playa"], ["Mazinger Z", "Dr. Slump", "La abeja Maya", "El Príncipe de Bel-Air", "Los problemas crecen", "Pretty Woman", "Mi primera colonia Chispas", "Hola Don Pepito", "Había una vez un circo"], ["Ulises 31", "Pipi Calzaslargas", "Los Diminutos", "Twin Peaks", "Fraggle Rock (tema principal)", "Rocky", "Nocilla", "La gallina Cocoua", "Un año más"], ["Ulises 31", "Pipi Calzaslargas", "Candy Candy", "Verano Azul", "Twin Peaks", "My girl", "Filvit champú", "La gallina Cocoua", "Un año más"], ["Los Diminutos", "Els barrufets", "Candy Candy", "El Príncipe de Bel-Air", "Fraggle Rock (tema principal)", "Pretty Woman", "Mi primera colonia Chispas", "Aquí no hay playa", "La gallina Cocoua"], ["La abeja Maya", "Candy Candy", "Dragones y Mazmorras", "Cosas de casa", "Dallas (tema principal)", "Grease", "Barrio Sésamo", "Un año más", "Chiquilla"], ["Scooby-Doo, ¿dónde estás?", "Ulises 31", "Los Diminutos", "Cosas de casa", "Fraggle Rock (tema principal)", "Rocky", "Un, Dos, Tres", "No controles", "Había una vez un circo"], ["Dr. Slump", "La vuelta al mundo de Willy Fog", "Pipi Calzaslargas", "El Príncipe de Bel-Air", "Verano Azul", "My girl", "El Show de los Teleñecos", "La gallina Cocoua", "Hola Don Pepito"], ["La vuelta al mundo de Willy Fog", "El bosque de Tallac", "Ulises 31", "Dallas (tema principal)", "Vacaciones en el Mar", "My girl", "Barrio Sésamo", "Escuela de calor", "Chiquilla"], ["Dr. Slump", "La abeja Maya", "Doraemon", "Los problemas crecen", "Twin Peaks", "Grease", "El Show de los Teleñecos", "Escuela de calor", "Un año más"], ["Dr. Slump", "Els barrufets", "Dragones y Mazmorras", "Cosas de casa", "Verano Azul", "Ghostbusters", "Un, Dos, Tres", "Escuela de calor", "No controles"], ["Dragones y Mazmorras", "Ulises 31", "Candy Candy", "Cosas de casa", "Verano Azul", "Rocky", "Un, Dos, Tres", "No controles", "Escuela de calor"], ["Mazinger Z", "Doraemon", "Inspector Gadget", "Los problemas crecen", "Cosas de casa", "Cocktail", "El Show de los Teleñecos", "Aquí no hay playa", "Hola Don Pepito"], ["Dragones y Mazmorras", "Scooby-Doo, ¿dónde estás?", "Inspector Gadget", "Twin Peaks", "Vacaciones en el Mar", "Cocktail", "Nocilla", "Chiquilla", "Hola Don Pepito"], ["Los Diminutos", "Doraemon", "Scooby-Doo, ¿dónde estás?", "Los problemas crecen", "Verano Azul", "Cocktail", "Filvit champú", "Había una vez un circo", "La gallina Cocoua"], ["Inspector Gadget", "El bosque de Tallac", "Els barrufets", "Los problemas crecen", "Dallas (tema principal)", "Flashdance", "Filvit champú", "Había una vez un circo", "Escuela de calor"], ["El bosque de Tallac", "Doraemon", "Inspector Gadget", "El Príncipe de Bel-Air", "Fraggle Rock (tema principal)", "Ghostbusters", "Barrio Sésamo", "Hola Don Pepito", "La gallina Cocoua"], ["La vuelta al mundo de Willy Fog", "Scooby-Doo, ¿dónde estás?", "Dr. Slump", "Twin Peaks", "Cosas de casa", "Ghostbusters", "El Show de los Teleñecos", "No controles", "Chiquilla"], ["Inspector Gadget", "Doraemon", "Dr. Slump", "El Príncipe de Bel-Air", "Fraggle Rock (tema principal)", "My girl", "Nocilla", "Había una vez un circo", "No controles"], ["Scooby-Doo, ¿dónde estás?", "La abeja Maya", "El bosque de Tallac", "El Príncipe de Bel-Air", "Verano Azul", "Flashdance", "Nocilla", "No controles", "Chiquilla"]], "p2": [["Bola de Drac", "Heidi", "Campeones", "MacGyver", "Saved by the Bell (tema principal)", "Fame", "Conguitos", "Comando G", "Garabatos"], ["Heidi", "Vamos a la cama", "Los Caballeros del Zodiaco", "MacGyver", "Padres forzosos", "El rey león", "Cola Cao", "Comando G", "Bailando"], ["Banner y Flappy", "Érase una vez el Hombre", "La Aldea de Arce", "Saved by the Bell (tema principal)", "El Coche Fantástico", "Dirty Dancing", "Cola Cao", "Devuélveme a mi chica", "Bailando"], ["Banner y Flappy", "La Aldea de Arce", "Bola de Drac", "Saved by the Bell (tema principal)", "Theme from Beverly Hills, 90210", "La historia interminable", "La Bola de Cristal", "Voy a pasármelo bien", "Mi Amigo Félix"], ["D'Artacán y los tres Mosqueperros", "Banner y Flappy", "Campeones", "El Equipo A", "Alf", "Footloose", "Cola Cao", "Voy a pasármelo bien", "Maquillaje"], ["D'Artacán y los tres Mosqueperros", "Banner y Flappy", "Vamos a la cama", "El Equipo A", "Saved by the Bell (tema principal)", "Regreso al futuro", "Conguitos", "Voy a pasármelo bien", "Cadillac Solitario"], ["La Aldea de Arce", "Campeones", "Les tortugues Ninja", "MacGyver", "Theme from Beverly Hills, 90210", "Footloose", "La Bola de Cristal", "Comando G", "Cadillac Solitario"], ["D'Artacán y los tres Mosqueperros", "Érase una vez el Hombre", "Heidi", "Padres forzosos", "Alf", "Regreso al futuro", "Farala", "Bailando", "Mi Amigo Félix"], ["Heidi", "Banner y Flappy", "Bola de Drac", "Alf", "MacGyver", "Fame", "Conguitos", "Maquillaje", "Garabatos"], ["Heidi", "La Aldea de Arce", "David el Gnomo", "MacGyver", "Theme from Beverly Hills, 90210", "Dirty Dancing", "Cola Cao", "Garabatos", "Voy a pasármelo bien"], ["La Pantera Rosa", "Vamos a la cama", "David el Gnomo", "MacGyver", "Alf", "Regreso al futuro", "La Bola de Cristal", "Mi Amigo Félix", "Cadillac Solitario"], ["La Pantera Rosa", "Banner y Flappy", "Bola de Drac", "MacGyver", "El Coche Fantástico", "Footloose", "Las muñecas de Famosa", "Garabatos", "Mi Amigo Félix"], ["Belfy y Lillibit", "David el Gnomo", "La Aldea de Arce", "El Coche Fantástico", "Cheers", "Dirty Dancing", "Sensación de Vivir", "Cadillac Solitario", "Comando G"], ["Belfy y Lillibit", "Les tortugues Ninja", "David el Gnomo", "Cheers", "Padres forzosos", "Dirty Dancing", "Sensación de Vivir", "Devuélveme a mi chica", "Comando G"], ["D'Artacán y los tres Mosqueperros", "La Pantera Rosa", "Marco", "Alf", "Padres forzosos", "Regreso al futuro", "La Bola de Cristal", "Devuélveme a mi chica", "Maquillaje"], ["La Pantera Rosa", "Marco", "Érase una vez el Hombre", "Alf", "Theme from Beverly Hills, 90210", "La historia interminable", "Las muñecas de Famosa", "Voy a pasármelo bien", "Bailando"], ["Campeones", "David el Gnomo", "Marco", "El Equipo A", "Padres forzosos", "Footloose", "Cola Cao", "Garabatos", "Devuélveme a mi chica"], ["Érase una vez el Hombre", "Vamos a la cama", "Heidi", "El Equipo A", "El Coche Fantástico", "Fame", "Sensación de Vivir", "Cadillac Solitario", "Mi Amigo Félix"], ["Campeones", "D'Artacán y los tres Mosqueperros", "Banner y Flappy", "El Equipo A", "Saved by the Bell (tema principal)", "Fame", "Las muñecas de Famosa", "Cadillac Solitario", "Bailando"], ["Campeones", "La Pantera Rosa", "Los Caballeros del Zodiaco", "Padres forzosos", "Cheers", "El rey león", "Conguitos", "Cadillac Solitario", "Maquillaje"], ["Vamos a la cama", "Érase una vez el Hombre", "Les tortugues Ninja", "El Coche Fantástico", "MacGyver", "Danger Zone (Top Gun)", "Sensación de Vivir", "Devuélveme a mi chica", "Cadillac Solitario"], ["Bola de Drac", "Los Caballeros del Zodiaco", "La Pantera Rosa", "El Coche Fantástico", "Cheers", "La historia interminable", "La Bola de Cristal", "Voy a pasármelo bien", "Maquillaje"], ["Érase una vez el Hombre", "Belfy y Lillibit", "La Aldea de Arce", "El Coche Fantástico", "Cheers", "Danger Zone (Top Gun)", "Farala", "Devuélveme a mi chica", "Garabatos"], ["David el Gnomo", "Marco", "Vamos a la cama", "Theme from Beverly Hills, 90210", "El Equipo A", "La historia interminable", "Sensación de Vivir", "Garabatos", "Voy a pasármelo bien"], ["Les tortugues Ninja", "Los Caballeros del Zodiaco", "Belfy y Lillibit", "Theme from Beverly Hills, 90210", "Cheers", "Danger Zone (Top Gun)", "Farala", "Maquillaje", "Mi Amigo Félix"], ["Les tortugues Ninja", "Bola de Drac", "Los Caballeros del Zodiaco", "Theme from Beverly Hills, 90210", "Cheers", "Footloose", "Conguitos", "Maquillaje", "Mi Amigo Félix"], ["Érase una vez el Hombre", "Los Caballeros del Zodiaco", "Marco", "Cheers", "Theme from Beverly Hills, 90210", "Fame", "Las muñecas de Famosa", "Maquillaje", "Devuélveme a mi chica"], ["Les tortugues Ninja", "Los Caballeros del Zodiaco", "Bola de Drac", "Alf", "Padres forzosos", "El rey león", "Farala", "Garabatos", "Comando G"], ["Les tortugues Ninja", "David el Gnomo", "D'Artacán y los tres Mosqueperros", "El Coche Fantástico", "Saved by the Bell (tema principal)", "Danger Zone (Top Gun)", "Las muñecas de Famosa", "Bailando", "Comando G"], ["Marco", "D'Artacán y los tres Mosqueperros", "Belfy y Lillibit", "El Equipo A", "Padres forzosos", "Danger Zone (Top Gun)", "Farala", "Bailando", "Comando G"]]}; // {p1:[[9 canciones]x30], p2:[[9 canciones]x30]}
 
 const SUPABASE_URL = 'https://ympfqydtolkqvzzcvqqw.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_UXiQXV7xLHwE6YWOEafRgw_81GRCPbE';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js";
-
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 const playerId = (crypto.randomUUID ? crypto.randomUUID() : ('p'+Math.random().toString(36).slice(2)+Date.now()));
 
-let liveConfig = { version: 0, cards: DEFAULT_CARDS };
-let claims = new Map(); // card_index -> {player_id, name, marked}
+function codeFor(partida, idx){ return 'P' + partida + String(idx+1).padStart(2,'0'); }
+function cardsOf(partida){ return partida==='1' ? CARDS.p1 : CARDS.p2; }
+
+let claims = new Map(); // "partida:idx" -> {partida, card_index, player_id, name, marked, line_at, bingo_at}
 const marked = new Set();
 let myName = '';
-let myIndex = null;   // índice de mi tarjeta (0-based), null si aún no he elegido
+let myPartida = null;
+let myIndex = null;
 let mySongs = null;
-let subView = 'actual'; // 'actual' | 'cargar'
-let configChannel = null;
+let activeTab = '1';
 let claimsChannel = null;
 
-// --- Config de la partida ------------------------------------------------
-async function fetchConfig(){
-  try{
-    const { data, error } = await sb.from('bingo_config').select('cards,version').eq('id',1).single();
-    if(!error && data && Array.isArray(data.cards)) return data;
-  }catch(e){ /* tabla no creada todavía: usamos DEFAULT_CARDS */ }
-  return { version: 0, cards: DEFAULT_CARDS };
-}
+function claimKey(partida, idx){ return partida + ':' + idx; }
 
-async function archiveCurrentGame(){
-  try{
-    const { data } = await sb.from('bingo_claims').select('name,marked,line_at,bingo_at');
-    const entries = data || [];
-    let lineWinner=null, lineAt=null, bingoWinner=null, bingoAt=null;
-    for(const e of entries){
-      if(e.line_at && (!lineAt || e.line_at < lineAt)){ lineAt = e.line_at; lineWinner = e.name; }
-      if(e.bingo_at && (!bingoAt || e.bingo_at < bingoAt)){ bingoAt = e.bingo_at; bingoWinner = e.name; }
-    }
-    if(entries.length === 0) return; // nadie jugó, no vale la pena archivar
-    await sb.from('bingo_history').insert({
-      num_players: entries.length,
-      num_cards: liveConfig.cards.length,
-      line_winner: lineWinner, line_at: lineAt,
-      bingo_winner: bingoWinner, bingo_at: bingoAt
-    });
-  }catch(e){ /* si falla el archivado, no bloqueamos la carga de la partida nueva */ }
-}
-
-async function saveConfig(newCards){
-  const current = await fetchConfig();
-  await archiveCurrentGame();
-  const { data, error } = await sb.from('bingo_config')
-    .update({ cards: newCards, version: (current.version||0)+1, updated_at: new Date().toISOString() })
-    .eq('id',1).select('cards,version').single();
-  if(error) throw error;
-  // al cargar partida nueva, las reservas anteriores ya no tienen sentido
-  try{ await sb.from('bingo_claims').delete().neq('card_index', -1); }catch(e){}
-  return data;
-}
-
-async function resetCurrentGame(){
-  const current = await fetchConfig();
-  await archiveCurrentGame();
-  const { data, error } = await sb.from('bingo_config')
-    .update({ version: (current.version||0)+1, updated_at: new Date().toISOString() })
-    .eq('id',1).select('cards,version').single();
-  if(error) throw error;
-  // se borran todas las reservas, pero las tarjetas (canciones) siguen siendo las mismas
-  try{ await sb.from('bingo_claims').delete().neq('card_index', -1); }catch(e){}
-  return data;
-}
-
-// --- Partidas guardadas (presets con nombre) --------------------------------
-async function saveNamedGame(name, cards){
-  const { error } = await sb.from('bingo_saved_games').insert({ name, cards });
-  if(error) throw error;
-}
-
-async function fetchSavedGames(){
-  try{
-    const { data, error } = await sb.from('bingo_saved_games')
-      .select('id,name,created_at').order('created_at', {ascending:false});
-    if(!error) return data || [];
-  }catch(e){ /* tabla no creada todavía */ }
-  return [];
-}
-
-async function getSavedGameCards(id){
-  const { data, error } = await sb.from('bingo_saved_games').select('cards').eq('id', id).single();
-  if(error) throw error;
-  return data.cards;
-}
-
-async function deleteSavedGame(id){
-  try{ await sb.from('bingo_saved_games').delete().eq('id', id); }catch(e){}
-}
-
-function subscribeConfigChanges(){
-  if(configChannel) return;
-  configChannel = sb.channel('bingo_config_watch')
-    .on('postgres_changes', {event:'UPDATE', schema:'public', table:'bingo_config', filter:'id=eq.1'}, payload=>{
-      const row = payload.new;
-      if(!row || row.version === liveConfig.version) return;
-      liveConfig = row;
-      claims.clear();
-      myIndex = null; mySongs = null; marked.clear();
-      paintHome('El anfitrión ha cargado una partida nueva — ¡elige tu tarjeta otra vez!');
-    })
-    .subscribe();
-}
-
-// --- Reservas de tarjetas (claims) ---------------------------------------
 async function fetchClaims(){
   try{
-    const { data, error } = await sb.from('bingo_claims').select('card_index,player_id,name,marked');
-    if(!error && data){
-      claims = new Map(data.map(r=>[r.card_index, r]));
-    }
+    const { data, error } = await sb.from('bingo_claims').select('*');
+    if(!error && data) claims = new Map(data.map(r=>[claimKey(r.partida, r.card_index), r]));
   }catch(e){ /* tabla no creada todavía */ }
 }
 
@@ -342,9 +217,9 @@ function subscribeClaimsChanges(){
   claimsChannel = sb.channel('bingo_claims_watch')
     .on('postgres_changes', {event:'*', schema:'public', table:'bingo_claims'}, payload=>{
       if(payload.eventType === 'DELETE'){
-        claims.delete(payload.old.card_index);
+        claims.delete(claimKey(payload.old.partida, payload.old.card_index));
       } else {
-        claims.set(payload.new.card_index, payload.new);
+        claims.set(claimKey(payload.new.partida, payload.new.card_index), payload.new);
       }
       rerenderLive();
     })
@@ -352,70 +227,66 @@ function subscribeClaimsChanges(){
 }
 
 function rerenderLive(){
-  // repinta solo las partes que dependen de "claims", sin perder el estado local
-  const app = document.getElementById('app');
-  if(!app) return;
-  if(myIndex !== null){
-    updateStatsBox();
-  } else if(document.getElementById('cataloglist')){
-    paintHome();
-  } else if(document.getElementById('gate-stats')){
-    updateStatsBox();
-  }
+  if(myIndex !== null){ updateStatsBox(); return; }
+  if(document.getElementById('cataloglist')){ paintHome(); return; }
+  if(document.getElementById('gate-stats')){ updateStatsBox(); }
 }
 
-async function claimCard(idx){
+async function claimCard(partida, idx){
   try{
     const { error } = await sb.from('bingo_claims').insert({
-      card_index: idx, player_id: playerId, name: myName, marked: 0
+      partida, card_index: idx, player_id: playerId, name: myName, marked: 0
     });
     if(error){
-      if(error.code === '23505'){
-        return { ok:false, reason:'taken' }; // conflicto real de clave primaria
-      }
+      if(error.code === '23505') return { ok:false, reason:'taken' };
       return { ok:false, reason:'error', message: error.message || JSON.stringify(error) };
     }
-    claims.set(idx, {card_index: idx, player_id: playerId, name: myName, marked: 0});
+    claims.set(claimKey(partida, idx), {partida, card_index:idx, player_id:playerId, name:myName, marked:0});
     return { ok:true };
   }catch(e){
     return { ok:false, reason:'error', message: (e && e.message) || String(e) };
   }
 }
 
-const LINES = [[0,1,2],[3,4,5],[6,7,8]]; // filas horizontales
-
-function hasLine(){
-  return LINES.some(row => row.every(i => marked.has(i)));
+async function releaseCard(){
+  if(myIndex===null) return;
+  try{
+    await sb.from('bingo_claims').delete().eq('partida', myPartida).eq('card_index', myIndex).eq('player_id', playerId);
+    claims.delete(claimKey(myPartida, myIndex));
+  }catch(e){ /* aunque falle, dejamos volver al inicio */ }
 }
+
+const LINES = [[0,1,2],[3,4,5],[6,7,8]];
+function hasLine(){ return LINES.some(row => row.every(i => marked.has(i))); }
 
 async function updateMyMark(){
   if(myIndex===null) return;
-  const existing = claims.get(myIndex) || {};
+  const existing = claims.get(claimKey(myPartida, myIndex)) || {};
   const payload = { marked: marked.size, updated_at: new Date().toISOString() };
   if(hasLine() && !existing.line_at) payload.line_at = new Date().toISOString();
   if(marked.size===9 && !existing.bingo_at) payload.bingo_at = new Date().toISOString();
   try{
     const { data } = await sb.from('bingo_claims').update(payload)
-      .eq('card_index', myIndex).eq('player_id', playerId).select().single();
-    if(data) claims.set(myIndex, data);
+      .eq('partida', myPartida).eq('card_index', myIndex).eq('player_id', playerId).select().single();
+    if(data) claims.set(claimKey(myPartida, myIndex), data);
   }catch(e){ /* no bloquea el juego */ }
 }
 
-// --- Ranking / contador ----------------------------------------------------
-function computeStats(){
-  const entries = Array.from(claims.values());
+// --- Ranking / contador (de la partida que se esté viendo) -----------------
+function computeStats(partida){
+  const entries = Array.from(claims.values()).filter(c=>c.partida===partida);
   const count = entries.length;
   const top3 = entries.slice().sort((a,b)=> b.marked - a.marked).slice(0,3);
   return {count, top3};
 }
 
-function statsBoxHTML(id){
-  const {count, top3} = computeStats();
+function statsBoxHTML(id, partida){
+  const {count, top3} = computeStats(partida);
   const medals = ['🥇','🥈','🥉'];
   return `
-    <div class="stats-card" id="${id}">
+    <div class="stats-card" id="${id}" data-partida="${partida}">
       <div class="stats-head">
-        <h3>🏆 Ranking</h3>
+        <h3>🏆 Ranking — Partida ${partida}</h3>
         <span class="player-count">🎟️ ${count} jugador${count===1?'':'es'}</span>
       </div>
       ${top3.length
@@ -431,92 +302,9 @@ function statsBoxHTML(id){
 
 function updateStatsBox(){
   const el = document.getElementById('stats-box') || document.getElementById('gate-stats');
-  if(el) el.outerHTML = statsBoxHTML(el.id);
-}
-
-// --- Parseo del PDF en el navegador ---------------------------------------
-async function parsePdfToCards(file){
-  const buf = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({data: buf}).promise;
-
-  // 1) Recolectamos TODAS las líneas del documento, en orden de lectura
-  //    (página por página, de arriba a abajo dentro de cada página).
-  const allLines = [];
-  for(let p=1; p<=pdf.numPages; p++){
-    const page = await pdf.getPage(p);
-    const content = await page.getTextContent();
-    let items = content.items
-      .map(it=>({str: (it.str||'').trim(), x: it.transform[4], y: it.transform[5], width: it.width||0}))
-      .filter(it=>it.str.length>0);
-    if(items.length===0) continue;
-
-    const lines = [];
-    const tol = 3;
-    for(const it of items){
-      let line = lines.find(l => Math.abs(l.y - it.y) < tol);
-      if(!line){ line = {y: it.y, items: []}; lines.push(line); }
-      line.items.push(it);
-    }
-    lines.sort((a,b)=> b.y - a.y); // de arriba a abajo dentro de la página
-    allLines.push(...lines);
-  }
-
-  function lineToColumns(line){
-    const sorted = line.items.slice().sort((a,b)=> a.x-b.x);
-    if(sorted.length <= 1) return sorted.map(i=>i.str);
-
-    // Calculamos el hueco real (fin del anterior -> inicio del siguiente),
-    // no la distancia entre inicios, para no confundir espacios dentro de
-    // un mismo título largo con la separación entre columnas.
-    const gaps = [];
-    for(let i=1;i<sorted.length;i++){
-      const prev = sorted[i-1];
-      gaps.push({ idx:i, size: sorted[i].x - (prev.x + prev.width) });
-    }
-    // Los 2 huecos más grandes de la fila son, por diseño de la tabla,
-    // los que separan una columna de la siguiente (siempre hay 3 columnas).
-    const cutPoints = gaps.slice().sort((a,b)=> b.size - a.size)
-      .slice(0, Math.min(2, gaps.length))
-      .map(g=>g.idx).sort((a,b)=>a-b);
-
-    const groups = [];
-    let start = 0;
-    for(const cp of cutPoints){ groups.push(sorted.slice(start, cp)); start = cp; }
-    groups.push(sorted.slice(start));
-
-    return groups.map(g => g.map(i=>i.str).join(' ').trim());
-  }
-
-  // 2) Recorremos las líneas: cada vez que aparece "TARJETA N" empieza una
-  //    tarjeta nueva, sin importar si hay varias por página o una por página.
-  const cards = [];
-  const warnings = [];
-  let current = null;
-  let currentLabel = null;
-
-  const flush = ()=>{
-    if(current === null) return;
-    if(current.length !== 9){
-      warnings.push(`${currentLabel || 'Tarjeta ' + (cards.length+1)}: se detectaron ${current.length} canciones en vez de 9.`);
-    }
-    cards.push(current);
-  };
-
-  for(const line of allLines){
-    const text = line.items.map(i=>i.str).join(' ').trim();
-    if(/^TARJETA\s+\d+/i.test(text)){
-      flush();
-      current = [];
-      currentLabel = text;
-      continue;
-    }
-    if(/SALVADOS POR LA CANCI/i.test(text)) continue;
-    if(current === null) continue; // texto antes de la primera "TARJETA N": lo ignoramos
-    current.push(...lineToColumns(line));
-  }
-  flush();
-
-  return {cards, warnings};
+  if(!el) return;
+  const partida = el.dataset.partida || activeTab;
+  el.outerHTML = statsBoxHTML(el.id, partida);
 }
 
 function toggleQR(wrapId, btnId){
@@ -551,7 +339,7 @@ async function paintGate(){
       <h1>SALVADOS POR LA <span>CANCIÓN</span></h1>
       <p>Introduce tu nombre para empezar</p>
     </div>
-    ${statsBoxHTML('gate-stats')}
+    ${statsBoxHTML('gate-stats', activeTab)}
     <div class="gate">
       <label>Tu nombre</label>
       <input type="text" id="gatename" maxlength="20" placeholder="Ej: Marta">
@@ -588,14 +376,6 @@ function renderGrid(songs){
   }).join('');
 }
 
-async function releaseCard(){
-  if(myIndex===null) return;
-  try{
-    await sb.from('bingo_claims').delete().eq('card_index', myIndex).eq('player_id', playerId);
-    claims.delete(myIndex);
-  }catch(e){ /* si falla, igualmente dejamos que el jugador vuelva al inicio */ }
-}
-
 function paintCard(){
   const app = document.getElementById('app');
   const total = mySongs.length;
@@ -610,17 +390,16 @@ function paintCard(){
     <div class="status-strip">${marked.size} / ${total} marcadas</div>
     ${full? `<div class="complete-banner">🎉 ¡TARJETA COMPLETA! Avisa al anfitrión</div>` : (line? `<div class="complete-banner" style="background:var(--teal);">📏 ¡LÍNEA! Avisa al anfitrión</div>` : '')}
     <div class="badge-row">
-      <span class="badge">Tarjeta ${myIndex+1}</span>
+      <span class="badge">${codeFor(myPartida, myIndex)}</span>
       <span class="badge name">👤 ${esc(myName)}</span>
     </div>
     <div class="mygrid">${renderGrid(mySongs)}</div>
-    ${statsBoxHTML('stats-box')}
+    ${statsBoxHTML('stats-box', myPartida)}
     <button class="linklike" id="backhome">← Volver al inicio y cambiar de tarjeta</button>
   `;
   document.getElementById('backhome').onclick = async ()=>{
     await releaseCard();
-    myIndex = null;
-    mySongs = null;
+    myPartida = null; myIndex = null; mySongs = null;
     marked.clear();
     paintHome();
   };
@@ -634,7 +413,7 @@ function paintCard(){
   });
 }
 
-// --- Vista: catálogo / carga de PDF -----------------------------------------
+// --- Vista: catálogo (Partida 1 / Partida 2) --------------------------------
 function miniGridHTML(songs){
   return songs.map((song,i)=>`
     <div class="minicell"><span class="num">${i+1}</span>${esc(song)}</div>
@@ -642,135 +421,19 @@ function miniGridHTML(songs){
 }
 
 function catalogListHTML(){
-  return liveConfig.cards.map((songs,idx)=>{
-    const taken = claims.get(idx);
+  const list = cardsOf(activeTab);
+  return list.map((songs,idx)=>{
+    const code = codeFor(activeTab, idx);
+    const taken = claims.get(claimKey(activeTab, idx));
     return `
-      <div class="catalog-card ${taken?'taken':''}">
-        <div class="head"><span class="code">Tarjeta ${idx+1}</span></div>
+      <div class="catalog-card">
+        <div class="head"><span class="code">${code}</span></div>
         <div class="minigrid">${miniGridHTML(songs)}</div>
         ${taken
           ? `<div class="taken-tag">🔒 Cogida por ${esc(taken.name||'alguien')}</div>`
           : `<button data-pick="${idx}">Elegir esta tarjeta</button>`}
       </div>`;
   }).join('');
-}
-
-function uploadBoxHTML(){
-  return `
-    <div class="upload-box">
-      <p>Sube el PDF con las tarjetas de la partida nueva (formato "TARJETA 1", "TARJETA 2"...). Al cargarlo, sustituirá la partida actual para todos los jugadores, que volverán automáticamente al catálogo para elegir de nuevo.</p>
-      <input type="file" id="pdfinput" accept="application/pdf">
-      <button id="pdfgo">CARGAR Y GENERAR TARJETAS</button>
-      <div class="upload-status" id="pdfstatus"></div>
-    </div>
-  `;
-}
-
-function bindUploadHandlers(){
-  const btn = document.getElementById('pdfgo');
-  const fileInput = document.getElementById('pdfinput');
-  const status = document.getElementById('pdfstatus');
-  btn.onclick = async ()=>{
-    const file = fileInput.files && fileInput.files[0];
-    if(!file){
-      status.className = 'upload-status err';
-      status.textContent = 'Selecciona primero un archivo PDF.';
-      return;
-    }
-    btn.disabled = true;
-    status.className = 'upload-status busy';
-    status.textContent = 'Leyendo el PDF…';
-    try{
-      const {cards, warnings} = await parsePdfToCards(file);
-      if(cards.length === 0){
-        throw new Error('No se ha encontrado ninguna tarjeta en el PDF.');
-      }
-      const badCount = warnings.length;
-      status.textContent = `Guardando ${cards.length} tarjetas…`;
-      liveConfig = await saveConfig(cards);
-      claims.clear();
-      status.className = badCount ? 'upload-status err' : 'upload-status ok';
-      status.textContent = badCount
-        ? `Guardadas ${cards.length} tarjetas, pero ${badCount} página(s) no dieron exactamente 9 canciones — revísalas: ${warnings.join(' ')}`
-        : `✓ ${cards.length} tarjetas cargadas correctamente. Todos los jugadores volverán al catálogo.`;
-      subView = 'actual';
-      setTimeout(()=>{ paintHome(); }, 900);
-    }catch(e){
-      status.className = 'upload-status err';
-      status.textContent = 'Error al leer el PDF: ' + (e.message||e);
-    }finally{
-      btn.disabled = false;
-    }
-  };
-}
-
-// --- Historial de partidas -------------------------------------------------
-async function loadHistory(){
-  const box = document.getElementById('historylist');
-  if(!box) return;
-  try{
-    const { data, error } = await sb.from('bingo_history')
-      .select('*').order('ended_at', {ascending:false}).limit(20);
-    if(error || !data || data.length===0){
-      box.innerHTML = `<div class="lb-empty">Todavía no hay partidas archivadas — se guardan solas cuando se carga una partida nueva.</div>`;
-      return;
-    }
-    box.innerHTML = data.map(h=>{
-      const date = new Date(h.ended_at).toLocaleString('es-ES', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
-      return `
-        <div class="history-card">
-          <div class="hdate">${date} · 🎟️ ${h.num_players} jugador${h.num_players===1?'':'es'} · ${h.num_cards} tarjetas</div>
-          <div class="hrow">📏 Línea: <b>${h.line_winner? esc(h.line_winner) : '— nadie —'}</b></div>
-          <div class="hrow">🏆 Bingo: <b>${h.bingo_winner? esc(h.bingo_winner) : '— nadie —'}</b></div>
-        </div>`;
-    }).join('');
-  }catch(e){
-    box.innerHTML = `<div class="lb-empty">No se pudo cargar el historial.</div>`;
-  }
-}
-
-async function loadSavedGamesList(){
-  const box = document.getElementById('savedgameslist');
-  if(!box) return;
-  const games = await fetchSavedGames();
-  if(games.length===0){
-    box.innerHTML = `<div class="lb-empty">Todavía no has guardado ninguna partida (usa "💾 Guardar partida actual como…" en la pestaña anterior).</div>`;
-    return;
-  }
-  box.innerHTML = `<div class="divider">partidas guardadas</div>` + games.map(g=>{
-    const date = new Date(g.created_at).toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit', year:'2-digit'});
-    return `
-      <div class="catalog-card">
-        <div class="head"><span class="code">${esc(g.name)}</span><span class="player-count">${date}</span></div>
-        <div style="display:flex;gap:8px;">
-          <button data-load="${g.id}" style="flex:1;">Cargar esta partida</button>
-          <button data-delsave="${g.id}" style="flex:0 0 auto;background:var(--bad);box-shadow:0 3px 0 #9c2c33;width:auto;padding:9px 12px;">🗑️</button>
-        </div>
-      </div>`;
-  }).join('') + `<div class="divider">o sube un PDF nuevo</div>`;
-
-  box.querySelectorAll('[data-load]').forEach(btn=>{
-    btn.onclick = async ()=>{
-      btn.disabled = true;
-      btn.textContent = 'Cargando…';
-      try{
-        const cards = await getSavedGameCards(parseInt(btn.dataset.load));
-        liveConfig = await saveConfig(cards);
-        claims.clear();
-        subView = 'actual';
-        paintHome('Partida cargada — todos vuelven al catálogo.');
-      }catch(e){
-        paintHome('Error al cargar la partida: ' + ((e&&e.message)||e));
-      }
-    };
-  });
-  box.querySelectorAll('[data-delsave]').forEach(btn=>{
-    btn.onclick = async ()=>{
-      if(!confirm('¿Borrar esta partida guardada? No afecta a la partida en curso.')) return;
-      await deleteSavedGame(parseInt(btn.dataset.delsave));
-      loadSavedGamesList();
-    };
-  });
 }
 
 function paintHome(msg){
@@ -783,102 +446,48 @@ function paintHome(msg){
     </div>
 
     ${msg? `<div class="info">${esc(msg)}</div>` : ''}
-    ${statsBoxHTML('stats-box')}
+    ${statsBoxHTML('stats-box', activeTab)}
     <button class="qr-toggle" id="qrtoggle">📱 Invitar a más gente</button>
     <div id="qrwrap"></div>
     <div class="warn">⚠️ En cuanto elijas una tarjeta, quedará bloqueada solo para ti — nadie más podrá cogerla mientras la tengas. Si quieres cambiarla, puedes volver al inicio desde tu tarjeta.</div>
 
-    <div class="subtabs">
-      <div class="subtab ${subView==='actual'?'active':''}" id="subactual">Partida actual</div>
-      <div class="subtab ${subView==='cargar'?'active':''}" id="subcargar">Cargar nueva</div>
-      <div class="subtab ${subView==='historial'?'active':''}" id="subhistorial">Historial</div>
+    <div class="tabs">
+      <div class="tab ${activeTab==='1'?'active':''}" id="tab1">Partida 1</div>
+      <div class="tab ${activeTab==='2'?'active':''}" id="tab2">Partida 2</div>
     </div>
 
-    <div id="catalogbody">
-      ${subView==='actual' ? `<div id="cataloglist">${catalogListHTML()}</div>
-          <button class="qr-toggle" id="savegame">💾 Guardar partida actual como…</button>
-          <button class="qr-toggle" id="resetgame" style="color:var(--bad);border-color:var(--bad);">🔄 Reiniciar partida (borra todas las reservas)</button>`
-        : subView==='cargar' ? `<div id="savedgameslist"><div class="lb-empty">Cargando partidas guardadas…</div></div>${uploadBoxHTML()}`
-        : `<div id="historylist"><div class="lb-empty">Cargando historial…</div></div>`}
-    </div>
+    <div id="cataloglist">${catalogListHTML()}</div>
   `;
 
   document.getElementById('qrtoggle').onclick = ()=> toggleQR('qrwrap', 'qrtoggle');
-  document.getElementById('subactual').onclick = ()=>{ subView='actual'; paintHome(); };
-  document.getElementById('subcargar').onclick = ()=>{ subView='cargar'; paintHome(); };
-  document.getElementById('subhistorial').onclick = ()=>{ subView='historial'; paintHome(); };
+  document.getElementById('tab1').onclick = ()=>{ activeTab='1'; paintHome(); };
+  document.getElementById('tab2').onclick = ()=>{ activeTab='2'; paintHome(); };
 
-  const resetBtn = document.getElementById('resetgame');
-  if(resetBtn){
-    resetBtn.onclick = async ()=>{
-      const sure = confirm('¿Seguro? Esto borra las tarjetas reservadas por TODOS los jugadores y les devuelve al catálogo. Las canciones no cambian.');
-      if(!sure) return;
-      resetBtn.disabled = true;
-      resetBtn.textContent = 'Reiniciando…';
-      try{
-        liveConfig = await resetCurrentGame();
-        claims.clear();
-        myIndex = null; mySongs = null; marked.clear();
-        paintHome('Partida reiniciada — todos vuelven a elegir tarjeta.');
-      }catch(e){
-        resetBtn.disabled = false;
-        resetBtn.textContent = '🔄 Reiniciar partida (borra todas las reservas)';
-        paintHome('Error al reiniciar: ' + ((e&&e.message)||e));
-      }
-    };
-  }
-
-  const saveBtn = document.getElementById('savegame');
-  if(saveBtn){
-    saveBtn.onclick = async ()=>{
-      const name = prompt('¿Cómo quieres llamar a esta partida guardada?');
-      if(!name || !name.trim()) return;
-      saveBtn.disabled = true;
-      saveBtn.textContent = 'Guardando…';
-      try{
-        await saveNamedGame(name.trim(), liveConfig.cards);
-        paintHome(`✓ Partida guardada como "${name.trim()}".`);
-      }catch(e){
-        saveBtn.disabled = false;
-        saveBtn.textContent = '💾 Guardar partida actual como…';
-        paintHome('Error al guardar: ' + ((e&&e.message)||e));
-      }
-    };
-  }
-
-  if(subView==='actual'){
-    document.querySelectorAll('[data-pick]').forEach(el=>{
-      el.onclick = async ()=>{
-        const idx = parseInt(el.dataset.pick);
-        el.disabled = true;
-        el.textContent = 'Reservando…';
-        const res = await claimCard(idx);
-        if(!res.ok){
-          if(res.reason === 'taken'){
-            paintHome('Uy, alguien acaba de coger esa tarjeta justo antes que tú. Elige otra.');
-          } else {
-            paintHome('Error al reservar la tarjeta: ' + res.message + ' — revisa que hayas ejecutado el SQL en Supabase (tabla bingo_claims).');
-          }
-          return;
+  document.querySelectorAll('[data-pick]').forEach(el=>{
+    el.onclick = async ()=>{
+      const idx = parseInt(el.dataset.pick);
+      el.disabled = true;
+      el.textContent = 'Reservando…';
+      const res = await claimCard(activeTab, idx);
+      if(!res.ok){
+        if(res.reason === 'taken'){
+          paintHome('Uy, alguien acaba de coger esa tarjeta justo antes que tú. Elige otra.');
+        } else {
+          paintHome('Error al reservar la tarjeta: ' + res.message + ' — revisa que hayas ejecutado el SQL en Supabase (tabla bingo_claims).');
         }
-        myIndex = idx;
-        mySongs = liveConfig.cards[idx];
-        marked.clear();
-        paintCard();
-      };
-    });
-  } else if(subView==='cargar'){
-    bindUploadHandlers();
-    loadSavedGamesList();
-  } else {
-    loadHistory();
-  }
+        return;
+      }
+      myPartida = activeTab;
+      myIndex = idx;
+      mySongs = cardsOf(activeTab)[idx];
+      marked.clear();
+      paintCard();
+    };
+  });
 }
 
 async function boot(){
-  liveConfig = await fetchConfig();
   await fetchClaims();
-  subscribeConfigChanges();
   subscribeClaimsChanges();
   paintGate();
 }
