@@ -85,9 +85,9 @@ h1{font-family:'Bungee',cursive;}
 }
 .badge-logo{
   position:relative;
-  width:clamp(190px, 58vw, 232px);
+  width:clamp(160px, 50vw, 198px);
   aspect-ratio:1/1;
-  margin:42px auto 50px;
+  margin:36px auto 42px;
   border-radius:50%;
   background:
     radial-gradient(circle at 50% 50%, rgba(0,0,0,.7) 0px, rgba(0,0,0,.7) 3.5px, transparent 3.5px),
@@ -103,18 +103,18 @@ h1{font-family:'Bungee',cursive;}
 .logo-line{display:flex;justify-content:center;font-family:'Luckiest Guy',cursive;font-weight:400;line-height:0.95;white-space:nowrap;position:relative;z-index:2;}
 .logo-line .ch{display:inline-block;}
 .logo-line.l1{
-  font-size:clamp(38px,12.5vw,52px);color:#3EB8F0;
+  font-size:clamp(32px,11vw,44px);color:#3EB8F0;
   text-shadow:-2px 0 var(--ink),2px 0 var(--ink),0 -2px var(--ink),0 2px var(--ink),3px 3px 0 var(--royal-dk);
-  margin-top:-46px;
+  margin-top:-39px;
 }
 .logo-line.l2{
   font-size:clamp(11px,3.2vw,14px);color:var(--rust);letter-spacing:3px;margin:6px 0;
   text-shadow:1px 1px 0 #fff;
 }
 .logo-line.l3{
-  font-size:clamp(52px,17vw,74px);color:var(--mustard);
+  font-size:clamp(44px,14.5vw,63px);color:var(--mustard);
   text-shadow:-3px 0 var(--rust-dk),3px 0 var(--rust-dk),0 -3px var(--rust-dk),0 3px var(--rust-dk),4px 4px 0 #7a0f3d;
-  margin-bottom:-36px;
+  margin-bottom:-31px;
 }
 /* letras desordenadas, como en el logo original */
 .logo-line .ch:nth-child(6n+1){transform:rotate(-8deg) translateY(3px);}
@@ -517,12 +517,30 @@ async function paintGate(){
       <button id="gatego">ENTRAR</button>
       <div class="err" id="gateerr"></div>
     </div>
+
+    <button class="action-btn danger" id="resetpartida" style="width:100%;margin-top:16px;">🔄 Reiniciar Partida ${activeTab} (expulsa a todos)</button>
+
     <div class="bottom-invite">
       <button class="qr-toggle" id="qrtoggle">📱 Mostrar código para invitar a más gente</button>
       <div id="qrwrap"></div>
     </div>
   `;
   document.getElementById('qrtoggle').onclick = ()=> toggleQR('qrwrap', 'qrtoggle');
+  document.getElementById('resetpartida').onclick = async ()=>{
+    const sure = confirm(`¿Seguro? Esto borra las tarjetas reservadas por TODOS los jugadores de la Partida ${activeTab} y les expulsa de vuelta al catálogo. No afecta a la otra partida.`);
+    if(!sure) return;
+    const btn = document.getElementById('resetpartida');
+    btn.disabled = true;
+    btn.textContent = 'Reiniciando…';
+    try{
+      await resetPartida(activeTab);
+      paintGate();
+    }catch(e){
+      alert('Error al reiniciar: ' + ((e&&e.message)||e));
+      btn.disabled = false;
+      btn.textContent = `🔄 Reiniciar Partida ${activeTab} (expulsa a todos)`;
+    }
+  };
   const input = document.getElementById('gatename');
   input.focus();
   const submit = ()=>{
@@ -555,15 +573,14 @@ function paintCard(){
   const full = marked.size===total;
   const line = hasLine();
   app.innerHTML = `
-    ${topbarHTML('Tu tarjeta', 'Toca la canción que creas que está sonando')}
-    <div class="status-strip">${marked.size} / ${total} marcadas</div>
+    ${topbarHTML('', 'Toca la canción que creas que está sonando')}
+    ${statsBoxHTML('stats-box', myPartida)}
     ${full? `<div class="complete-banner">🎉 ¡TARJETA COMPLETA! Avisa al anfitrión</div>` : (line? `<div class="complete-banner" style="background:var(--teal);">📏 ¡LÍNEA! Avisa al anfitrión</div>` : '')}
     <div class="badge-row">
       <span class="badge">${codeFor(myPartida, myIndex)}</span>
       <span class="badge name">👤 ${esc(myName)}</span>
     </div>
     <div class="mygrid">${renderGrid(mySongs)}</div>
-    ${statsBoxHTML('stats-box', myPartida)}
 
     <div class="action-row">
       <button class="action-btn" id="backhome">← Volver al inicio</button>
