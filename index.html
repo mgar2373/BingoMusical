@@ -171,6 +171,45 @@ h1{font-family:'Bungee',cursive;}
   display:block;text-align:center;font-size:11px;color:#b5a8cc;margin-top:22px;
   text-decoration:underline;cursor:pointer;background:none;border:none;font-family:inherit;
 }
+
+.action-row{display:flex;gap:8px;margin-top:16px;}
+.action-btn{
+  flex:1;background:#fffdf7;border:2px solid var(--line);color:var(--purple-dk);
+  border-radius:10px;padding:11px;font-family:'Bungee',cursive;font-size:11.5px;cursor:pointer;
+}
+.action-btn.danger{color:var(--rust-dk);border-color:#f5c9dd;}
+.action-btn:active{transform:translateY(1px);}
+
+.bottom-invite{margin-top:22px;}
+
+/* Carrusel de tarjetas */
+.carousel-wrap{position:relative;}
+.carousel-track{
+  display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;
+  padding:2px 2px 14px;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
+.carousel-track::-webkit-scrollbar{display:none;}
+.carousel-track .catalog-card{flex:0 0 82%;scroll-snap-align:center;margin-bottom:0;}
+.carousel-nav{display:flex;justify-content:center;gap:10px;margin:-4px 0 14px;}
+.carousel-nav button{
+  background:var(--purple);color:#fff;border:none;border-radius:50%;
+  width:34px;height:34px;font-size:16px;cursor:pointer;
+}
+.carousel-nav button:active{transform:scale(.92);}
+.carousel-counter{
+  text-align:center;font-family:monospace;font-size:11px;color:#8a7a9c;margin-bottom:10px;
+}
+
+/* Toast de aviso (línea/bingo) */
+.toast{
+  position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:#fff;padding:14px 22px;border-radius:12px;
+  font-family:'Bungee',cursive;font-size:13px;box-shadow:0 6px 18px rgba(0,0,0,.25);
+  opacity:0;transition:opacity .25s, transform .25s;z-index:999;text-align:center;
+  max-width:90vw;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.lb-name .line-tag{font-size:11px;margin-left:4px;}
 </style>
 </head>
 <body>
@@ -259,12 +298,28 @@ async function releaseCard(){
 const LINES = [[0,1,2],[3,4,5],[6,7,8]];
 function hasLine(){ return LINES.some(row => row.every(i => marked.has(i))); }
 
+function showToast(msg){
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  requestAnimationFrame(()=> el.classList.add('show'));
+  setTimeout(()=>{
+    el.classList.remove('show');
+    setTimeout(()=> el.remove(), 300);
+  }, 2800);
+}
+
 async function updateMyMark(){
   if(myIndex===null) return;
   const existing = claims.get(claimKey(myPartida, myIndex)) || {};
   const payload = { marked: marked.size, updated_at: new Date().toISOString() };
-  if(hasLine() && !existing.line_at) payload.line_at = new Date().toISOString();
-  if(marked.size===9 && !existing.bingo_at) payload.bingo_at = new Date().toISOString();
+  const newLine = hasLine() && !existing.line_at;
+  const newBingo = marked.size===9 && !existing.bingo_at;
+  if(newLine) payload.line_at = new Date().toISOString();
+  if(newBingo) payload.bingo_at = new Date().toISOString();
+  if(newLine) showToast('📏 ¡Has hecho línea! Avisa al anfitrión');
+  if(newBingo) showToast('🎉 ¡BINGO! Avisa al anfitrión');
   try{
     const { data } = await sb.from('bingo_claims').update(payload)
       .eq('partida', myPartida).eq('card_index', myIndex).eq('player_id', playerId).select().single();
@@ -293,7 +348,7 @@ function statsBoxHTML(id, partida){
         ? top3.map((e,i)=>`
             <div class="lb-row">
               <span class="lb-medal">${medals[i]}</span>
-              <span class="lb-name">${esc(e.name||'Anónimo')}</span>
+              <span class="lb-name">${esc(e.name||'Anónimo')}${e.line_at?' <span class="line-tag">📏</span>':''}</span>
               <span class="lb-count">${e.marked}/9</span>
             </div>`).join('')
         : `<div class="lb-empty">Todavía no hay nadie con tarjeta.</div>`}
@@ -346,8 +401,10 @@ async function paintGate(){
       <button id="gatego">ENTRAR</button>
       <div class="err" id="gateerr"></div>
     </div>
-    <button class="qr-toggle" id="qrtoggle">📱 Mostrar código para invitar a más gente</button>
-    <div id="qrwrap"></div>
+    <div class="bottom-invite">
+      <button class="qr-toggle" id="qrtoggle">📱 Mostrar código para invitar a más gente</button>
+      <div id="qrwrap"></div>
+    </div>
   `;
   document.getElementById('qrtoggle').onclick = ()=> toggleQR('qrwrap', 'qrtoggle');
   const input = document.getElementById('gatename');
@@ -395,13 +452,29 @@ function paintCard(){
     </div>
     <div class="mygrid">${renderGrid(mySongs)}</div>
     ${statsBoxHTML('stats-box', myPartida)}
-    <button class="linklike" id="backhome">← Volver al inicio y cambiar de tarjeta</button>
+
+    <div class="action-row">
+      <button class="action-btn" id="backhome">← Volver al inicio</button>
+      <button class="action-btn danger" id="resetcard">↺ Reiniciar tarjeta</button>
+    </div>
+
+    <div class="bottom-invite">
+      <button class="qr-toggle" id="qrtoggle">📱 Mostrar código para invitar a más gente</button>
+      <div id="qrwrap"></div>
+    </div>
   `;
+  document.getElementById('qrtoggle').onclick = ()=> toggleQR('qrwrap', 'qrtoggle');
   document.getElementById('backhome').onclick = async ()=>{
     await releaseCard();
     myPartida = null; myIndex = null; mySongs = null;
     marked.clear();
     paintHome();
+  };
+  document.getElementById('resetcard').onclick = ()=>{
+    if(!confirm('¿Borrar las marcas de tu tarjeta? Sigues quedándote con la misma tarjeta.')) return;
+    marked.clear();
+    paintCard();
+    updateMyMark();
   };
   document.querySelectorAll('[data-mark]').forEach(el=>{
     el.onclick = ()=>{
@@ -422,7 +495,7 @@ function miniGridHTML(songs){
 
 function catalogListHTML(){
   const list = cardsOf(activeTab);
-  return list.map((songs,idx)=>{
+  const cards = list.map((songs,idx)=>{
     const code = codeFor(activeTab, idx);
     const taken = claims.get(claimKey(activeTab, idx));
     return `
@@ -434,6 +507,15 @@ function catalogListHTML(){
           : `<button data-pick="${idx}">Elegir esta tarjeta</button>`}
       </div>`;
   }).join('');
+  return `
+    <div class="carousel-counter">Desliza para ver las ${list.length} tarjetas →</div>
+    <div class="carousel-wrap">
+      <div class="carousel-track" id="carouseltrack">${cards}</div>
+      <div class="carousel-nav">
+        <button id="carouselprev">‹</button>
+        <button id="carouselnext">›</button>
+      </div>
+    </div>`;
 }
 
 function paintHome(msg){
@@ -447,8 +529,6 @@ function paintHome(msg){
 
     ${msg? `<div class="info">${esc(msg)}</div>` : ''}
     ${statsBoxHTML('stats-box', activeTab)}
-    <button class="qr-toggle" id="qrtoggle">📱 Invitar a más gente</button>
-    <div id="qrwrap"></div>
     <div class="warn">⚠️ En cuanto elijas una tarjeta, quedará bloqueada solo para ti — nadie más podrá cogerla mientras la tengas. Si quieres cambiarla, puedes volver al inicio desde tu tarjeta.</div>
 
     <div class="tabs">
@@ -457,11 +537,28 @@ function paintHome(msg){
     </div>
 
     <div id="cataloglist">${catalogListHTML()}</div>
+
+    <div class="bottom-invite">
+      <button class="qr-toggle" id="qrtoggle">📱 Invitar a más gente</button>
+      <div id="qrwrap"></div>
+    </div>
   `;
 
   document.getElementById('qrtoggle').onclick = ()=> toggleQR('qrwrap', 'qrtoggle');
   document.getElementById('tab1').onclick = ()=>{ activeTab='1'; paintHome(); };
   document.getElementById('tab2').onclick = ()=>{ activeTab='2'; paintHome(); };
+
+  const track = document.getElementById('carouseltrack');
+  const scrollByCard = (dir)=>{
+    if(!track) return;
+    const card = track.querySelector('.catalog-card');
+    const step = card ? (card.getBoundingClientRect().width + 12) : 300;
+    track.scrollBy({ left: dir*step, behavior:'smooth' });
+  };
+  const prevBtn = document.getElementById('carouselprev');
+  const nextBtn = document.getElementById('carouselnext');
+  if(prevBtn) prevBtn.onclick = ()=> scrollByCard(-1);
+  if(nextBtn) nextBtn.onclick = ()=> scrollByCard(1);
 
   document.querySelectorAll('[data-pick]').forEach(el=>{
     el.onclick = async ()=>{
