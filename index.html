@@ -7,19 +7,24 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Luckiest+Guy&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 :root{
-  --paper:#F8F4FF;
-  --ink:#1B1330;
+  --paper:#FDFBF5;
+  --ink:#14102B;
   --mustard:#FFD400;
   --rust:#FF3E9A;
   --rust-dk:#C81F73;
-  --teal:#00B8B0;
+  --teal:#00C2CB;
+  --teal-dk:#007e78;
+  --royal:#3B5BDB;
+  --lilac:#CBAAEF;
+  --lilac-dk:#9B6FC9;
+  --royal-dk:#2A3FA0;
   --purple:#7A2CBF;
   --purple-dk:#551F87;
   --good:#1FA971;
-  --bad:#D8434E;
+  --bad:#E63950;
   --line:#E3D6F5;
 }
 *{box-sizing:border-box;}
@@ -30,31 +35,95 @@ body{
   font-family:'Space Grotesk',sans-serif;
   min-height:100vh;
   background-image:
-    radial-gradient(circle at 10% 8%, rgba(255,62,154,0.08), transparent 40%),
-    radial-gradient(circle at 92% 90%, rgba(0,184,176,0.10), transparent 42%);
+    repeating-linear-gradient(0deg, rgba(20,16,43,0.06) 0px, rgba(20,16,43,0.06) 1px, transparent 1px, transparent 30px),
+    repeating-linear-gradient(90deg, rgba(20,16,43,0.06) 0px, rgba(20,16,43,0.06) 1px, transparent 1px, transparent 30px),
+    radial-gradient(circle at 6% 8%, rgba(255,62,154,0.16), transparent 40%),
+    radial-gradient(circle at 94% 14%, rgba(0,194,203,0.18), transparent 38%),
+    radial-gradient(circle at 12% 92%, rgba(255,212,0,0.18), transparent 34%),
+    radial-gradient(circle at 92% 88%, rgba(59,91,219,0.14), transparent 36%);
+  background-attachment: fixed, fixed, fixed, fixed, fixed, fixed;
 }
 h1{font-family:'Bungee',cursive;}
 
+/* Formas geométricas decorativas de fondo, al estilo del póster */
+.bg-shapes{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
+#app{position:relative;z-index:1;}
+.shape{position:absolute;}
+.circle{border-radius:50%;}
+.c1{width:150px;height:150px;background:rgba(59,91,219,.16);top:2%;left:-50px;}
+.c2{width:80px;height:80px;background:rgba(0,194,203,.22);top:10%;right:4%;}
+.c3{width:120px;height:120px;border:9px solid rgba(255,62,154,.18);top:66%;left:-35px;}
+.c4{width:46px;height:46px;background:rgba(255,212,0,.30);bottom:6%;left:22%;}
+.c5{width:34px;height:34px;background:rgba(59,91,219,.24);top:44%;right:2%;}
+.dots1{
+  width:90px;height:90px;top:20%;left:1%;border-radius:50%;opacity:.5;
+  background-image:radial-gradient(rgba(59,91,219,.4) 2.5px, transparent 2.5px);
+  background-size:13px 13px;
+}
+.square{background:rgba(255,62,154,.22);border-radius:8px;}
+.sq1{width:58px;height:58px;top:6%;right:-14px;transform:rotate(18deg);}
+.triangle{width:0;height:0;
+  border-left:42px solid transparent;border-right:42px solid transparent;
+  border-bottom:73px solid rgba(255,212,0,.32);
+}
+.tr1{right:3%;bottom:16%;transform:rotate(8deg);}
+.zigzag{opacity:.4;}
+.z1{top:52%;right:6%;}
+.z2{top:28%;left:3%;transform:scaleX(-1);}
+
 .wrap{max-width:520px;margin:0 auto;padding:24px 16px 50px;}
 .topbar{
-  position:relative;
-  background:linear-gradient(135deg, var(--ink), var(--purple-dk) 65%, var(--rust-dk));
-  color:var(--paper);
-  border-radius:14px;
-  padding:22px 22px 18px;
-  overflow:hidden;
-  margin-bottom:18px;
   text-align:center;
-  box-shadow:0 6px 0 var(--rust-dk);
+  margin-bottom:20px;
+  padding:10px 0 2px;
 }
 .topbar .eyebrow{
+  display:block;
   font-family:monospace;
   font-size:11px;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--mustard);opacity:.9;
+  color:var(--royal-dk);margin-bottom:10px;
 }
-.topbar h1{margin:4px 0 2px;font-size:22px;color:var(--paper);}
-.topbar h1 span{color:var(--mustard);}
-.topbar p{margin:2px 0 0;font-size:13px;color:#ECE1FA;opacity:.9;}
+.badge-logo{
+  position:relative;
+  width:clamp(190px, 58vw, 232px);
+  aspect-ratio:1/1;
+  margin:42px auto 50px;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(0,0,0,.7) 0px, rgba(0,0,0,.7) 3.5px, transparent 3.5px),
+    repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.16) 0px, rgba(255,255,255,.16) 1.5px, transparent 1.5px, transparent 11px),
+    radial-gradient(circle at 42% 34%, #241c46 0%, #0b0716 78%);
+  border:6px solid var(--royal);
+  box-shadow:0 8px 0 rgba(0,0,0,.22), inset 0 0 0 3px rgba(255,255,255,.06);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transform:rotate(-3deg);
+  padding:8px;
+  overflow:visible;
+}
+.logo-line{display:flex;justify-content:center;font-family:'Luckiest Guy',cursive;font-weight:400;line-height:0.95;white-space:nowrap;position:relative;z-index:2;}
+.logo-line .ch{display:inline-block;}
+.logo-line.l1{
+  font-size:clamp(38px,12.5vw,52px);color:#3EB8F0;
+  text-shadow:-2px 0 var(--ink),2px 0 var(--ink),0 -2px var(--ink),0 2px var(--ink),3px 3px 0 var(--royal-dk);
+  margin-top:-46px;
+}
+.logo-line.l2{
+  font-size:clamp(11px,3.2vw,14px);color:var(--rust);letter-spacing:3px;margin:6px 0;
+  text-shadow:1px 1px 0 #fff;
+}
+.logo-line.l3{
+  font-size:clamp(52px,17vw,74px);color:var(--mustard);
+  text-shadow:-3px 0 var(--rust-dk),3px 0 var(--rust-dk),0 -3px var(--rust-dk),0 3px var(--rust-dk),4px 4px 0 #7a0f3d;
+  margin-bottom:-36px;
+}
+/* letras desordenadas, como en el logo original */
+.logo-line .ch:nth-child(6n+1){transform:rotate(-8deg) translateY(3px);}
+.logo-line .ch:nth-child(6n+2){transform:rotate(5deg) translateY(-4px);}
+.logo-line .ch:nth-child(6n+3){transform:rotate(-3deg) translateY(2px);}
+.logo-line .ch:nth-child(6n+4){transform:rotate(7deg) translateY(-2px);}
+.logo-line .ch:nth-child(6n+5){transform:rotate(-6deg) translateY(4px);}
+.logo-line .ch:nth-child(6n+6){transform:rotate(4deg) translateY(-1px);}
+.topbar p{margin:12px auto 0;font-size:13px;color:var(--ink);opacity:.85;max-width:300px;}
 
 .status-strip{
   background:var(--ink);color:var(--paper);border-radius:10px;padding:10px 14px;
@@ -98,7 +167,7 @@ h1{font-family:'Bungee',cursive;}
   padding:13px;font-family:'Space Grotesk',sans-serif;font-size:16px;color:var(--ink);
   background:#fff;text-align:center;margin-bottom:14px;
 }
-.gate input:focus{outline:none;border-color:var(--purple);}
+.gate input:focus{outline:none;border-color:var(--royal);}
 .gate button{
   width:100%;background:var(--rust);color:#fff;border:none;border-radius:10px;
   padding:14px;font-family:'Bungee',cursive;font-size:14px;cursor:pointer;
@@ -109,7 +178,7 @@ h1{font-family:'Bungee',cursive;}
 
 .stats-card{background:#fffdf7;border:2px solid var(--mustard);border-radius:12px;padding:14px;margin-bottom:16px;}
 .stats-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-.stats-head h3{font-family:'Bungee',cursive;font-size:13px;margin:0;color:#8a6b00;}
+.stats-head h3{font-family:'Bungee',cursive;font-size:13px;margin:0;color:var(--rust-dk);}
 .player-count{font-family:monospace;font-size:12px;color:#6b5a91;background:#efe4fc;border-radius:6px;padding:3px 8px;}
 .lb-row{display:flex;align-items:center;gap:8px;padding:6px 4px;font-size:13px;border-bottom:1px solid var(--line);}
 .lb-row:last-child{border-bottom:none;}
@@ -123,13 +192,13 @@ h1{font-family:'Bungee',cursive;}
   flex:1;text-align:center;padding:10px;border-radius:10px;font-family:'Bungee',cursive;
   font-size:12px;cursor:pointer;border:2px solid var(--line);background:#fffdf7;color:#8a7a9c;
 }
-.tab.active{background:var(--purple);color:#fff;border-color:var(--purple-dk);}
+.tab.active{background:var(--lilac);color:var(--ink);border-color:var(--lilac-dk);}
 
 .catalog-card{
   background:#fffdf7;border:2px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;
 }
 .catalog-card .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-.catalog-card .code{font-family:monospace;font-weight:700;font-size:13px;color:var(--purple-dk);}
+.catalog-card .code{font-family:monospace;font-weight:700;font-size:13px;color:var(--royal-dk);}
 .minigrid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:10px;}
 .minicell{
   position:relative;background:#faf7ff;border:1px solid var(--line);border-radius:6px;
@@ -192,7 +261,7 @@ h1{font-family:'Bungee',cursive;}
 .carousel-track .catalog-card{flex:0 0 82%;scroll-snap-align:center;margin-bottom:0;}
 .carousel-nav{display:flex;justify-content:center;gap:10px;margin:-4px 0 14px;}
 .carousel-nav button{
-  background:var(--purple);color:#fff;border:none;border-radius:50%;
+  background:var(--royal);color:#fff;border:none;border-radius:50%;
   width:34px;height:34px;font-size:16px;cursor:pointer;
 }
 .carousel-nav button:active{transform:scale(.92);}
@@ -213,6 +282,22 @@ h1{font-family:'Bungee',cursive;}
 </style>
 </head>
 <body>
+<div class="bg-shapes" aria-hidden="true">
+  <div class="shape circle c1"></div>
+  <div class="shape circle c2"></div>
+  <div class="shape circle c3"></div>
+  <div class="shape circle c4"></div>
+  <div class="shape circle c5"></div>
+  <div class="shape dots1"></div>
+  <div class="shape square sq1"></div>
+  <div class="shape triangle tr1"></div>
+  <svg class="shape zigzag z1" width="52" height="70" viewBox="0 0 52 70" xmlns="http://www.w3.org/2000/svg">
+    <polyline points="6,4 46,20 6,36 46,52 6,66" fill="none" stroke="#00C2CB" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <svg class="shape zigzag z2" width="44" height="60" viewBox="0 0 44 60" xmlns="http://www.w3.org/2000/svg">
+    <polyline points="5,4 39,17 5,30 39,43 5,56" fill="none" stroke="#3B5BDB" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</div>
 <div id="app" class="wrap">Cargando…</div>
 
 <script>
@@ -220,7 +305,7 @@ h1{font-family:'Bungee',cursive;}
 // no dependen de Supabase). Solo las reservas de tarjeta y el ranking en
 // vivo pasan por Supabase — nadie necesita cuenta de Claude ni de Supabase.
 
-const CARDS = {"p1": [["La vuelta al mundo de Willy Fog", "Mazinger Z", "Los Diminutos", "Verano Azul", "Dallas (tema principal)", "Rocky", "Barrio Sésamo", "La gallina Cocoua", "Un año más"], ["Los Diminutos", "La abeja Maya", "Scooby-Doo, ¿dónde estás?", "Vacaciones en el Mar", "Cosas de casa", "Ghostbusters", "Mi primera colonia Chispas", "Aquí no hay playa", "No controles"], ["Dr. Slump", "Ulises 31", "Mazinger Z", "Vacaciones en el Mar", "Cosas de casa", "Pretty Woman", "Filvit champú", "Un año más", "Hola Don Pepito"], ["Candy Candy", "Inspector Gadget", "Dragones y Mazmorras", "Vacaciones en el Mar", "Los problemas crecen", "Grease", "Barrio Sésamo", "Había una vez un circo", "Chiquilla"], ["Inspector Gadget", "Mazinger Z", "Los Diminutos", "Vacaciones en el Mar", "Twin Peaks", "Grease", "Un, Dos, Tres", "Había una vez un circo", "Aquí no hay playa"], ["La vuelta al mundo de Willy Fog", "Els barrufets", "El bosque de Tallac", "Fraggle Rock (tema principal)", "Los problemas crecen", "Pretty Woman", "El Show de los Teleñecos", "Hola Don Pepito", "Escuela de calor"], ["Els barrufets", "Candy Candy", "Pipi Calzaslargas", "El Príncipe de Bel-Air", "Dallas (tema principal)", "Cocktail", "Filvit champú", "La gallina Cocoua", "Chiquilla"], ["Mazinger Z", "Doraemon", "Dragones y Mazmorras", "Twin Peaks", "Dallas (tema principal)", "Flashdance", "Un, Dos, Tres", "Un año más", "Aquí no hay playa"], ["Els barrufets", "Doraemon", "Scooby-Doo, ¿dónde estás?", "Verano Azul", "Vacaciones en el Mar", "Rocky", "Nocilla", "No controles", "Aquí no hay playa"], ["Candy Candy", "Mazinger Z", "La vuelta al mundo de Willy Fog", "Fraggle Rock (tema principal)", "Dallas (tema principal)", "My girl", "Mi primera colonia Chispas", "Un año más", "Escuela de calor"], ["Dragones y Mazmorras", "Els barrufets", "El bosque de Tallac", "Vacaciones en el Mar", "Twin Peaks", "Grease", "Mi primera colonia Chispas", "Chiquilla", "Aquí no hay playa"], ["Mazinger Z", "Dr. Slump", "La abeja Maya", "El Príncipe de Bel-Air", "Los problemas crecen", "Pretty Woman", "Mi primera colonia Chispas", "Hola Don Pepito", "Había una vez un circo"], ["Ulises 31", "Pipi Calzaslargas", "Los Diminutos", "Twin Peaks", "Fraggle Rock (tema principal)", "Rocky", "Nocilla", "La gallina Cocoua", "Un año más"], ["Ulises 31", "Pipi Calzaslargas", "Candy Candy", "Verano Azul", "Twin Peaks", "My girl", "Filvit champú", "La gallina Cocoua", "Un año más"], ["Los Diminutos", "Els barrufets", "Candy Candy", "El Príncipe de Bel-Air", "Fraggle Rock (tema principal)", "Pretty Woman", "Mi primera colonia Chispas", "Aquí no hay playa", "La gallina Cocoua"], ["La abeja Maya", "Candy Candy", "Dragones y Mazmorras", "Cosas de casa", "Dallas (tema principal)", "Grease", "Barrio Sésamo", "Un año más", "Chiquilla"], ["Scooby-Doo, ¿dónde estás?", "Ulises 31", "Los Diminutos", "Cosas de casa", "Fraggle Rock (tema principal)", "Rocky", "Un, Dos, Tres", "No controles", "Había una vez un circo"], ["Dr. Slump", "La vuelta al mundo de Willy Fog", "Pipi Calzaslargas", "El Príncipe de Bel-Air", "Verano Azul", "My girl", "El Show de los Teleñecos", "La gallina Cocoua", "Hola Don Pepito"], ["La vuelta al mundo de Willy Fog", "El bosque de Tallac", "Ulises 31", "Dallas (tema principal)", "Vacaciones en el Mar", "My girl", "Barrio Sésamo", "Escuela de calor", "Chiquilla"], ["Dr. Slump", "La abeja Maya", "Doraemon", "Los problemas crecen", "Twin Peaks", "Grease", "El Show de los Teleñecos", "Escuela de calor", "Un año más"], ["Dr. Slump", "Els barrufets", "Dragones y Mazmorras", "Cosas de casa", "Verano Azul", "Ghostbusters", "Un, Dos, Tres", "Escuela de calor", "No controles"], ["Dragones y Mazmorras", "Ulises 31", "Candy Candy", "Cosas de casa", "Verano Azul", "Rocky", "Un, Dos, Tres", "No controles", "Escuela de calor"], ["Mazinger Z", "Doraemon", "Inspector Gadget", "Los problemas crecen", "Cosas de casa", "Cocktail", "El Show de los Teleñecos", "Aquí no hay playa", "Hola Don Pepito"], ["Dragones y Mazmorras", "Scooby-Doo, ¿dónde estás?", "Inspector Gadget", "Twin Peaks", "Vacaciones en el Mar", "Cocktail", "Nocilla", "Chiquilla", "Hola Don Pepito"], ["Los Diminutos", "Doraemon", "Scooby-Doo, ¿dónde estás?", "Los problemas crecen", "Verano Azul", "Cocktail", "Filvit champú", "Había una vez un circo", "La gallina Cocoua"], ["Inspector Gadget", "El bosque de Tallac", "Els barrufets", "Los problemas crecen", "Dallas (tema principal)", "Flashdance", "Filvit champú", "Había una vez un circo", "Escuela de calor"], ["El bosque de Tallac", "Doraemon", "Inspector Gadget", "El Príncipe de Bel-Air", "Fraggle Rock (tema principal)", "Ghostbusters", "Barrio Sésamo", "Hola Don Pepito", "La gallina Cocoua"], ["La vuelta al mundo de Willy Fog", "Scooby-Doo, ¿dónde estás?", "Dr. Slump", "Twin Peaks", "Cosas de casa", "Ghostbusters", "El Show de los Teleñecos", "No controles", "Chiquilla"], ["Inspector Gadget", "Doraemon", "Dr. Slump", "El Príncipe de Bel-Air", "Fraggle Rock (tema principal)", "My girl", "Nocilla", "Había una vez un circo", "No controles"], ["Scooby-Doo, ¿dónde estás?", "La abeja Maya", "El bosque de Tallac", "El Príncipe de Bel-Air", "Verano Azul", "Flashdance", "Nocilla", "No controles", "Chiquilla"]], "p2": [["Bola de Drac", "Heidi", "Campeones", "MacGyver", "Saved by the Bell (tema principal)", "Fame", "Conguitos", "Comando G", "Garabatos"], ["Heidi", "Vamos a la cama", "Los Caballeros del Zodiaco", "MacGyver", "Padres forzosos", "El rey león", "Cola Cao", "Comando G", "Bailando"], ["Banner y Flappy", "Érase una vez el Hombre", "La Aldea de Arce", "Saved by the Bell (tema principal)", "El Coche Fantástico", "Dirty Dancing", "Cola Cao", "Devuélveme a mi chica", "Bailando"], ["Banner y Flappy", "La Aldea de Arce", "Bola de Drac", "Saved by the Bell (tema principal)", "Theme from Beverly Hills, 90210", "La historia interminable", "La Bola de Cristal", "Voy a pasármelo bien", "Mi Amigo Félix"], ["D'Artacán y los tres Mosqueperros", "Banner y Flappy", "Campeones", "El Equipo A", "Alf", "Footloose", "Cola Cao", "Voy a pasármelo bien", "Maquillaje"], ["D'Artacán y los tres Mosqueperros", "Banner y Flappy", "Vamos a la cama", "El Equipo A", "Saved by the Bell (tema principal)", "Regreso al futuro", "Conguitos", "Voy a pasármelo bien", "Cadillac Solitario"], ["La Aldea de Arce", "Campeones", "Les tortugues Ninja", "MacGyver", "Theme from Beverly Hills, 90210", "Footloose", "La Bola de Cristal", "Comando G", "Cadillac Solitario"], ["D'Artacán y los tres Mosqueperros", "Érase una vez el Hombre", "Heidi", "Padres forzosos", "Alf", "Regreso al futuro", "Farala", "Bailando", "Mi Amigo Félix"], ["Heidi", "Banner y Flappy", "Bola de Drac", "Alf", "MacGyver", "Fame", "Conguitos", "Maquillaje", "Garabatos"], ["Heidi", "La Aldea de Arce", "David el Gnomo", "MacGyver", "Theme from Beverly Hills, 90210", "Dirty Dancing", "Cola Cao", "Garabatos", "Voy a pasármelo bien"], ["La Pantera Rosa", "Vamos a la cama", "David el Gnomo", "MacGyver", "Alf", "Regreso al futuro", "La Bola de Cristal", "Mi Amigo Félix", "Cadillac Solitario"], ["La Pantera Rosa", "Banner y Flappy", "Bola de Drac", "MacGyver", "El Coche Fantástico", "Footloose", "Las muñecas de Famosa", "Garabatos", "Mi Amigo Félix"], ["Belfy y Lillibit", "David el Gnomo", "La Aldea de Arce", "El Coche Fantástico", "Cheers", "Dirty Dancing", "Sensación de Vivir", "Cadillac Solitario", "Comando G"], ["Belfy y Lillibit", "Les tortugues Ninja", "David el Gnomo", "Cheers", "Padres forzosos", "Dirty Dancing", "Sensación de Vivir", "Devuélveme a mi chica", "Comando G"], ["D'Artacán y los tres Mosqueperros", "La Pantera Rosa", "Marco", "Alf", "Padres forzosos", "Regreso al futuro", "La Bola de Cristal", "Devuélveme a mi chica", "Maquillaje"], ["La Pantera Rosa", "Marco", "Érase una vez el Hombre", "Alf", "Theme from Beverly Hills, 90210", "La historia interminable", "Las muñecas de Famosa", "Voy a pasármelo bien", "Bailando"], ["Campeones", "David el Gnomo", "Marco", "El Equipo A", "Padres forzosos", "Footloose", "Cola Cao", "Garabatos", "Devuélveme a mi chica"], ["Érase una vez el Hombre", "Vamos a la cama", "Heidi", "El Equipo A", "El Coche Fantástico", "Fame", "Sensación de Vivir", "Cadillac Solitario", "Mi Amigo Félix"], ["Campeones", "D'Artacán y los tres Mosqueperros", "Banner y Flappy", "El Equipo A", "Saved by the Bell (tema principal)", "Fame", "Las muñecas de Famosa", "Cadillac Solitario", "Bailando"], ["Campeones", "La Pantera Rosa", "Los Caballeros del Zodiaco", "Padres forzosos", "Cheers", "El rey león", "Conguitos", "Cadillac Solitario", "Maquillaje"], ["Vamos a la cama", "Érase una vez el Hombre", "Les tortugues Ninja", "El Coche Fantástico", "MacGyver", "Danger Zone (Top Gun)", "Sensación de Vivir", "Devuélveme a mi chica", "Cadillac Solitario"], ["Bola de Drac", "Los Caballeros del Zodiaco", "La Pantera Rosa", "El Coche Fantástico", "Cheers", "La historia interminable", "La Bola de Cristal", "Voy a pasármelo bien", "Maquillaje"], ["Érase una vez el Hombre", "Belfy y Lillibit", "La Aldea de Arce", "El Coche Fantástico", "Cheers", "Danger Zone (Top Gun)", "Farala", "Devuélveme a mi chica", "Garabatos"], ["David el Gnomo", "Marco", "Vamos a la cama", "Theme from Beverly Hills, 90210", "El Equipo A", "La historia interminable", "Sensación de Vivir", "Garabatos", "Voy a pasármelo bien"], ["Les tortugues Ninja", "Los Caballeros del Zodiaco", "Belfy y Lillibit", "Theme from Beverly Hills, 90210", "Cheers", "Danger Zone (Top Gun)", "Farala", "Maquillaje", "Mi Amigo Félix"], ["Les tortugues Ninja", "Bola de Drac", "Los Caballeros del Zodiaco", "Theme from Beverly Hills, 90210", "Cheers", "Footloose", "Conguitos", "Maquillaje", "Mi Amigo Félix"], ["Érase una vez el Hombre", "Los Caballeros del Zodiaco", "Marco", "Cheers", "Theme from Beverly Hills, 90210", "Fame", "Las muñecas de Famosa", "Maquillaje", "Devuélveme a mi chica"], ["Les tortugues Ninja", "Los Caballeros del Zodiaco", "Bola de Drac", "Alf", "Padres forzosos", "El rey león", "Farala", "Garabatos", "Comando G"], ["Les tortugues Ninja", "David el Gnomo", "D'Artacán y los tres Mosqueperros", "El Coche Fantástico", "Saved by the Bell (tema principal)", "Danger Zone (Top Gun)", "Las muñecas de Famosa", "Bailando", "Comando G"], ["Marco", "D'Artacán y los tres Mosqueperros", "Belfy y Lillibit", "El Equipo A", "Padres forzosos", "Danger Zone (Top Gun)", "Farala", "Bailando", "Comando G"]]}; // {p1:[[9 canciones]x30], p2:[[9 canciones]x30]}
+const CARDS = {"p1": [["Dr. Slump", "El bosque de Tallac", "Pipi Calzaslargas", "Fraggle Rock (tema principal)", "Vacaciones en el Mar", "Cocktail", "Nocilla", "Chiquilla", "Hola Don Pepito"], ["La abeja Maya", "Los Diminutos", "Pipi Calzaslargas", "Verano Azul", "Cosas de casa", "My girl", "Filvit champú", "Aquí no hay playa", "Escuela de calor"], ["Los Diminutos", "Inspector Gadget", "Mazinger Z", "Los problemas crecen", "Fraggle Rock (tema principal)", "Rocky", "Nocilla", "La gallina Cocoua", "Hola Don Pepito"], ["Candy Candy", "Pipi Calzaslargas", "Mazinger Z", "Cosas de casa", "Dallas (tema principal)", "Rocky", "Barrio Sésamo", "No controles", "Chiquilla"], ["Pipi Calzaslargas", "Dragones y Mazmorras", "Els barrufets", "Vacaciones en el Mar", "Los problemas crecen", "Cocktail", "Barrio Sésamo", "Aquí no hay playa", "Chiquilla"], ["Pipi Calzaslargas", "Candy Candy", "El bosque de Tallac", "Vacaciones en el Mar", "Los problemas crecen", "Ghostbusters", "Barrio Sésamo", "Chiquilla", "Hola Don Pepito"], ["Els barrufets", "Los Diminutos", "Ulises 31", "Twin Peaks", "Verano Azul", "Cocktail", "Mi primera colonia Chispas", "Un año más", "Aquí no hay playa"], ["La vuelta al mundo de Willy Fog", "Los Diminutos", "Scooby-Doo, ¿dónde estás?", "Twin Peaks", "Los problemas crecen", "Grease", "El Show de los Teleñecos", "La gallina Cocoua", "No controles"], ["Scooby-Doo, ¿dónde estás?", "Candy Candy", "Doraemon", "Twin Peaks", "Los problemas crecen", "Ghostbusters", "El Show de los Teleñecos", "Aquí no hay playa", "Hola Don Pepito"], ["El bosque de Tallac", "Doraemon", "Els barrufets", "El Príncipe de Bel-Air", "Fraggle Rock (tema principal)", "Pretty Woman", "Barrio Sésamo", "Un año más", "Hola Don Pepito"], ["Scooby-Doo, ¿dónde estás?", "Ulises 31", "Dr. Slump", "El Príncipe de Bel-Air", "Twin Peaks", "Flashdance", "Filvit champú", "Un año más", "No controles"], ["Inspector Gadget", "Scooby-Doo, ¿dónde estás?", "La abeja Maya", "Twin Peaks", "El Príncipe de Bel-Air", "My girl", "Filvit champú", "Había una vez un circo", "Hola Don Pepito"], ["Inspector Gadget", "Dragones y Mazmorras", "La abeja Maya", "Verano Azul", "Twin Peaks", "Rocky", "Nocilla", "Escuela de calor", "Hola Don Pepito"], ["Inspector Gadget", "La vuelta al mundo de Willy Fog", "Scooby-Doo, ¿dónde estás?", "Cosas de casa", "Twin Peaks", "Flashdance", "Filvit champú", "Escuela de calor", "No controles"], ["Dragones y Mazmorras", "Mazinger Z", "Candy Candy", "El Príncipe de Bel-Air", "Dallas (tema principal)", "Pretty Woman", "Un, Dos, Tres", "Escuela de calor", "Un año más"], ["Els barrufets", "Dragones y Mazmorras", "Los Diminutos", "Los problemas crecen", "Vacaciones en el Mar", "Grease", "Barrio Sésamo", "La gallina Cocoua", "Un año más"], ["Candy Candy", "La vuelta al mundo de Willy Fog", "Dr. Slump", "Vacaciones en el Mar", "Verano Azul", "Pretty Woman", "Un, Dos, Tres", "La gallina Cocoua", "Había una vez un circo"], ["La vuelta al mundo de Willy Fog", "Doraemon", "El bosque de Tallac", "Fraggle Rock (tema principal)", "El Príncipe de Bel-Air", "My girl", "El Show de los Teleñecos", "Chiquilla", "Había una vez un circo"], ["Els barrufets", "Candy Candy", "Ulises 31", "Twin Peaks", "Verano Azul", "Flashdance", "Mi primera colonia Chispas", "No controles", "Chiquilla"], ["Doraemon", "Dr. Slump", "Mazinger Z", "Dallas (tema principal)", "El Príncipe de Bel-Air", "Ghostbusters", "El Show de los Teleñecos", "La gallina Cocoua", "Aquí no hay playa"], ["Ulises 31", "Scooby-Doo, ¿dónde estás?", "Los Diminutos", "Cosas de casa", "Fraggle Rock (tema principal)", "Rocky", "Un, Dos, Tres", "No controles", "Chiquilla"], ["Mazinger Z", "Ulises 31", "Dragones y Mazmorras", "Fraggle Rock (tema principal)", "Vacaciones en el Mar", "Rocky", "Un, Dos, Tres", "Chiquilla", "Aquí no hay playa"], ["Doraemon", "El bosque de Tallac", "Dragones y Mazmorras", "Dallas (tema principal)", "El Príncipe de Bel-Air", "Grease", "Mi primera colonia Chispas", "Hola Don Pepito", "Había una vez un circo"], ["Candy Candy", "Doraemon", "La abeja Maya", "Fraggle Rock (tema principal)", "Cosas de casa", "My girl", "Nocilla", "Había una vez un circo", "Aquí no hay playa"], ["Los Diminutos", "La vuelta al mundo de Willy Fog", "Pipi Calzaslargas", "Los problemas crecen", "Cosas de casa", "My girl", "Mi primera colonia Chispas", "No controles", "Había una vez un circo"], ["Dr. Slump", "La vuelta al mundo de Willy Fog", "Inspector Gadget", "Los problemas crecen", "Dallas (tema principal)", "Pretty Woman", "Un, Dos, Tres", "Había una vez un circo", "Aquí no hay playa"], ["Ulises 31", "La vuelta al mundo de Willy Fog", "Mazinger Z", "Cosas de casa", "Verano Azul", "Cocktail", "Mi primera colonia Chispas", "Un año más", "No controles"], ["La abeja Maya", "Dragones y Mazmorras", "Mazinger Z", "Cosas de casa", "Dallas (tema principal)", "Flashdance", "El Show de los Teleñecos", "La gallina Cocoua", "Escuela de calor"], ["La abeja Maya", "Els barrufets", "Ulises 31", "Fraggle Rock (tema principal)", "El Príncipe de Bel-Air", "Grease", "Nocilla", "La gallina Cocoua", "Había una vez un circo"], ["Els barrufets", "El bosque de Tallac", "Inspector Gadget", "Verano Azul", "Vacaciones en el Mar", "Ghostbusters", "Filvit champú", "Un año más", "Escuela de calor"]], "p2": [["David el Gnomo", "Los Caballeros del Zodiaco", "D'Artacán y los tres Mosqueperros", "Alf", "Theme from Beverly Hills, 90210", "Regreso al futuro (tema principal)", "Las muñecas de Famosa", "Mi Amigo Félix", "Comando G"], ["Belfy y Lillibit", "Marco", "La Pantera Rosa", "Salvados por la Campana", "El Equipo A", "La historia interminable", "Coca-Cola", "Mi Amigo Félix", "Garabatos"], ["La Aldea de Arce", "Les tortugues Ninja", "Bola de Drac", "Cheers", "Salvados por la Campana", "Footloose", "La Bola de Cristal", "Mi Amigo Félix", "Comando G"], ["David el Gnomo", "Érase una vez el Hombre", "Campeones", "Alf", "El Equipo A", "Fame", "Conguitos", "Voy a pasármelo bien", "Mi Amigo Félix"], ["Los Caballeros del Zodiaco", "Banner y Flappy", "Marco", "El Equipo A", "Padres forzosos", "Footloose", "Conguitos", "Bailando", "Devuélveme a mi chica"], ["Banner y Flappy", "Bola de Drac", "Heidi", "El Coche Fantástico", "Alf", "Dirty Dancing", "Coca-Cola", "Devuélveme a mi chica", "Bailando"], ["Vamos a la cama", "D'Artacán y los tres Mosqueperros", "Érase una vez el Hombre", "Salvados por la Campana", "Cheers", "Dirty Dancing", "La Bola de Cristal", "Bailando", "Garabatos"], ["Heidi", "Banner y Flappy", "Belfy y Lillibit", "El Coche Fantástico", "Salvados por la Campana", "Fame", "Las muñecas de Famosa", "Voy a pasármelo bien", "Comando G"], ["D'Artacán y los tres Mosqueperros", "Vamos a la cama", "Belfy y Lillibit", "MacGyver", "Padres forzosos", "La historia interminable", "Farala", "Comando G", "Voy a pasármelo bien"], ["D'Artacán y los tres Mosqueperros", "Campeones", "Los Caballeros del Zodiaco", "MacGyver", "El Coche Fantástico", "Danger Zone (Top Gun)", "Conguitos", "Maquillaje", "Cadillac Solitario"], ["Banner y Flappy", "David el Gnomo", "Les tortugues Ninja", "El Coche Fantástico", "Alf", "Footloose", "Las muñecas de Famosa", "Devuélveme a mi chica", "Bailando"], ["Vamos a la cama", "David el Gnomo", "La Aldea de Arce", "Salvados por la Campana", "El Equipo A", "El rey león", "Conguitos", "Devuélveme a mi chica", "Garabatos"], ["Heidi", "Banner y Flappy", "Marco", "Salvados por la Campana", "Padres forzosos", "El rey león", "Conguitos", "Cadillac Solitario", "Maquillaje"], ["Los Caballeros del Zodiaco", "D'Artacán y los tres Mosqueperros", "Heidi", "El Equipo A", "Theme from Beverly Hills, 90210", "Footloose", "La Bola de Cristal", "Voy a pasármelo bien", "Maquillaje"], ["Marco", "Bola de Drac", "Érase una vez el Hombre", "El Equipo A", "Padres forzosos", "Danger Zone (Top Gun)", "Farala", "Maquillaje", "Cadillac Solitario"], ["D'Artacán y los tres Mosqueperros", "Belfy y Lillibit", "Banner y Flappy", "Alf", "El Coche Fantástico", "La historia interminable", "La Bola de Cristal", "Maquillaje", "Garabatos"], ["Érase una vez el Hombre", "Marco", "Bola de Drac", "Padres forzosos", "Cheers", "Danger Zone (Top Gun)", "Coca-Cola", "Comando G", "Cadillac Solitario"], ["La Pantera Rosa", "La Aldea de Arce", "Marco", "El Equipo A", "Salvados por la Campana", "Dirty Dancing", "La Bola de Cristal", "Voy a pasármelo bien", "Devuélveme a mi chica"], ["David el Gnomo", "Les tortugues Ninja", "La Pantera Rosa", "Cheers", "Alf", "Danger Zone (Top Gun)", "Cola Cao", "Maquillaje", "Devuélveme a mi chica"], ["David el Gnomo", "Belfy y Lillibit", "Les tortugues Ninja", "Theme from Beverly Hills, 90210", "MacGyver", "El rey león", "Coca-Cola", "Maquillaje", "Voy a pasármelo bien"], ["Belfy y Lillibit", "Érase una vez el Hombre", "La Pantera Rosa", "Cheers", "Theme from Beverly Hills, 90210", "La historia interminable", "Farala", "Bailando", "Cadillac Solitario"], ["Bola de Drac", "La Pantera Rosa", "Campeones", "MacGyver", "Theme from Beverly Hills, 90210", "Footloose", "Las muñecas de Famosa", "Comando G", "Garabatos"], ["Heidi", "Bola de Drac", "La Aldea de Arce", "El Equipo A", "Padres forzosos", "La historia interminable", "Cola Cao", "Bailando", "Garabatos"], ["Campeones", "Érase una vez el Hombre", "Vamos a la cama", "MacGyver", "Alf", "Fame", "Cola Cao", "Mi Amigo Félix", "Cadillac Solitario"], ["Les tortugues Ninja", "La Aldea de Arce", "Érase una vez el Hombre", "MacGyver", "Padres forzosos", "Regreso al futuro (tema principal)", "Farala", "Devuélveme a mi chica", "Cadillac Solitario"], ["La Aldea de Arce", "Bola de Drac", "Heidi", "Cheers", "MacGyver", "Regreso al futuro (tema principal)", "Las muñecas de Famosa", "Maquillaje", "Mi Amigo Félix"], ["Les tortugues Ninja", "Campeones", "La Pantera Rosa", "El Coche Fantástico", "MacGyver", "Regreso al futuro (tema principal)", "Coca-Cola", "Devuélveme a mi chica", "Voy a pasármelo bien"], ["Campeones", "La Aldea de Arce", "David el Gnomo", "Theme from Beverly Hills, 90210", "Cheers", "Dirty Dancing", "Cola Cao", "Voy a pasármelo bien", "Cadillac Solitario"], ["Los Caballeros del Zodiaco", "Vamos a la cama", "Campeones", "Alf", "El Coche Fantástico", "Fame", "Farala", "Comando G", "Garabatos"], ["Los Caballeros del Zodiaco", "Heidi", "Belfy y Lillibit", "Theme from Beverly Hills, 90210", "Padres forzosos", "Regreso al futuro (tema principal)", "Cola Cao", "Garabatos", "Bailando"]]}; // {p1:[[9 canciones]x30], p2:[[9 canciones]x30]}
 
 const SUPABASE_URL = 'https://ympfqydtolkqvzzcvqqw.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_UXiQXV7xLHwE6YWOEafRgw_81GRCPbE';
@@ -400,15 +485,31 @@ function toggleQR(wrapId, btnId){
   if(btn) btn.textContent = '📱 Ocultar código';
 }
 
+function wobbleText(str){
+  return str.split('').map(ch => ch===' '
+    ? '<span class="ch" style="width:.4em"> </span>'
+    : `<span class="ch">${esc(ch)}</span>`
+  ).join('');
+}
+
+function topbarHTML(eyebrow, subtitle){
+  return `
+    <div class="topbar">
+      <div class="eyebrow">${esc(eyebrow)}</div>
+      <div class="badge-logo">
+        <span class="logo-line l1">${wobbleText('SALVADOS')}</span>
+        <span class="logo-line l2">POR LA</span>
+        <span class="logo-line l3">${wobbleText('CANCIÓN')}</span>
+      </div>
+      ${subtitle ? `<p>${esc(subtitle)}</p>` : ''}
+    </div>`;
+}
+
 // --- Vista: puerta de entrada (nombre) -------------------------------------
 async function paintGate(){
   const app = document.getElementById('app');
   app.innerHTML = `
-    <div class="topbar">
-      <div class="eyebrow">Bingo musical</div>
-      <h1>SALVADOS POR LA <span>CANCIÓN</span></h1>
-      <p>Introduce tu nombre para empezar</p>
-    </div>
+    ${topbarHTML('Bingo musical', '')}
     ${statsBoxHTML('gate-stats', activeTab)}
     <div class="gate">
       <label>Tu nombre</label>
@@ -454,11 +555,7 @@ function paintCard(){
   const full = marked.size===total;
   const line = hasLine();
   app.innerHTML = `
-    <div class="topbar">
-      <div class="eyebrow">Tu tarjeta</div>
-      <h1>SALVADOS POR LA <span>CANCIÓN</span></h1>
-      <p>Toca la canción que creas que está sonando</p>
-    </div>
+    ${topbarHTML('Tu tarjeta', 'Toca la canción que creas que está sonando')}
     <div class="status-strip">${marked.size} / ${total} marcadas</div>
     ${full? `<div class="complete-banner">🎉 ¡TARJETA COMPLETA! Avisa al anfitrión</div>` : (line? `<div class="complete-banner" style="background:var(--teal);">📏 ¡LÍNEA! Avisa al anfitrión</div>` : '')}
     <div class="badge-row">
@@ -510,7 +607,7 @@ function miniGridHTML(songs){
 
 function catalogListHTML(){
   const list = cardsOf(activeTab);
-  const cards = list.map((songs,idx)=>{
+  const renderCard = (songs, idx)=>{
     const code = codeFor(activeTab, idx);
     const taken = claims.get(claimKey(activeTab, idx));
     return `
@@ -521,7 +618,12 @@ function catalogListHTML(){
           ? `<div class="taken-tag">🔒 Cogida por ${esc(taken.name||'alguien')}</div>`
           : `<button data-pick="${idx}">Elegir esta tarjeta</button>`}
       </div>`;
-  }).join('');
+  };
+  const realCards = list.map((songs,idx)=> renderCard(songs, idx)).join('');
+  // clones al principio y al final para poder saltar sin que se note el corte
+  const cloneFirst = renderCard(list[0], 0);
+  const cloneLast = renderCard(list[list.length-1], list.length-1);
+  const cards = cloneLast + realCards + cloneFirst;
   return `
     <div class="carousel-counter">Desliza para ver las ${list.length} tarjetas →</div>
     <div class="carousel-wrap">
@@ -536,11 +638,7 @@ function catalogListHTML(){
 function paintHome(msg){
   const app = document.getElementById('app');
   app.innerHTML = `
-    <div class="topbar">
-      <div class="eyebrow">Bingo musical</div>
-      <h1>SALVADOS POR LA <span>CANCIÓN</span></h1>
-      <p>Hola ${esc(myName)} — elige tu tarjeta</p>
-    </div>
+    ${topbarHTML('Bingo musical', `Hola ${myName} — elige tu tarjeta`)}
 
     ${msg? `<div class="info">${esc(msg)}</div>` : ''}
     ${statsBoxHTML('stats-box', activeTab)}
@@ -585,6 +683,38 @@ function paintHome(msg){
     const step = card ? (card.getBoundingClientRect().width + 12) : 300;
     track.scrollBy({ left: dir*step, behavior:'smooth' });
   };
+  const setScrollToChild = (child, smooth)=>{
+    if(!track || !child) return;
+    const trackRect = track.getBoundingClientRect();
+    const childRect = child.getBoundingClientRect();
+    const target = track.scrollLeft + (childRect.left - trackRect.left);
+    track.scrollTo({ left: target, behavior: smooth ? 'smooth' : 'auto' });
+  };
+  if(track && track.children.length > 2){
+    // posicionamos en la primera tarjeta real (índice 1: 0 es el clon del final)
+    requestAnimationFrame(()=> setScrollToChild(track.children[1], false));
+    let scrollTimer = null;
+    track.addEventListener('scroll', ()=>{
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(()=>{
+        const children = Array.from(track.children);
+        const n = children.length;
+        const trackRect = track.getBoundingClientRect();
+        const centerX = trackRect.left + trackRect.width/2;
+        let closestIdx = 0, closestDist = Infinity;
+        children.forEach((c,i)=>{
+          const r = c.getBoundingClientRect();
+          const d = Math.abs((r.left + r.width/2) - centerX);
+          if(d < closestDist){ closestDist = d; closestIdx = i; }
+        });
+        if(closestIdx === 0){ // clon del último -> saltamos al último real
+          setScrollToChild(children[n-2], false);
+        } else if(closestIdx === n-1){ // clon del primero -> saltamos al primero real
+          setScrollToChild(children[1], false);
+        }
+      }, 120);
+    });
+  }
   const prevBtn = document.getElementById('carouselprev');
   const nextBtn = document.getElementById('carouselnext');
   if(prevBtn) prevBtn.onclick = ()=> scrollByCard(-1);
