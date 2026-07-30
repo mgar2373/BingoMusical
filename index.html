@@ -256,13 +256,28 @@ function subscribeClaimsChanges(){
   claimsChannel = sb.channel('bingo_claims_watch')
     .on('postgres_changes', {event:'*', schema:'public', table:'bingo_claims'}, payload=>{
       if(payload.eventType === 'DELETE'){
-        claims.delete(claimKey(payload.old.partida, payload.old.card_index));
+        const old = payload.old;
+        claims.delete(claimKey(old.partida, old.card_index));
+        // si borran justo MI reserva (p.ej. el anfitrión reinició la partida), me expulsan
+        if(myIndex !== null && old.partida === myPartida && old.card_index === myIndex){
+          myPartida = null; myIndex = null; mySongs = null; marked.clear();
+          paintHome('El anfitrión ha reiniciado la partida — elige tu tarjeta otra vez.');
+          return;
+        }
       } else {
         claims.set(claimKey(payload.new.partida, payload.new.card_index), payload.new);
       }
       rerenderLive();
     })
     .subscribe();
+}
+
+async function resetPartida(partida){
+  const { error } = await sb.from('bingo_claims').delete().eq('partida', partida);
+  if(error) throw error;
+  for(const k of Array.from(claims.keys())){
+    if(k.startsWith(partida+':')) claims.delete(k);
+  }
 }
 
 function rerenderLive(){
@@ -538,6 +553,8 @@ function paintHome(msg){
 
     <div id="cataloglist">${catalogListHTML()}</div>
 
+    <button class="action-btn danger" id="resetpartida" style="width:100%;margin-top:6px;">🔄 Reiniciar Partida ${activeTab} (expulsa a todos)</button>
+
     <div class="bottom-invite">
       <button class="qr-toggle" id="qrtoggle">📱 Invitar a más gente</button>
       <div id="qrwrap"></div>
@@ -545,6 +562,19 @@ function paintHome(msg){
   `;
 
   document.getElementById('qrtoggle').onclick = ()=> toggleQR('qrwrap', 'qrtoggle');
+  document.getElementById('resetpartida').onclick = async ()=>{
+    const sure = confirm(`¿Seguro? Esto borra las tarjetas reservadas por TODOS los jugadores de la Partida ${activeTab} y les expulsa de vuelta al catálogo. No afecta a la otra partida.`);
+    if(!sure) return;
+    const btn = document.getElementById('resetpartida');
+    btn.disabled = true;
+    btn.textContent = 'Reiniciando…';
+    try{
+      await resetPartida(activeTab);
+      paintHome(`Partida ${activeTab} reiniciada — todos vuelven a elegir tarjeta.`);
+    }catch(e){
+      paintHome('Error al reiniciar: ' + ((e&&e.message)||e));
+    }
+  };
   document.getElementById('tab1').onclick = ()=>{ activeTab='1'; paintHome(); };
   document.getElementById('tab2').onclick = ()=>{ activeTab='2'; paintHome(); };
 
